@@ -39,28 +39,16 @@ class LeadService {
       return false;
     }
 
-    const transitions: Record<LeadStatus, LeadStatus[]> = {
-      PENDING: ['APPROVED', 'REJECTED'],
-      APPROVED: ['PENDING', 'CONTACTED', 'REJECTED'],
-      CONTACTED: ['PENDING', 'APPROVED', 'BOUGHT', 'REJECTED'],
-      BOUGHT: ['SOLD'],
-      SOLD: ['PAID'],
-      PAID: [],
-      REJECTED: ['PENDING', 'APPROVED'],
-    };
-
-    const allowedTransitions = transitions[fromStatus] || [];
+    // Allow most transitions for managers and superadmins
+    // Only restrict certain high-level status changes by role
     
-    // Additional role-based restrictions
-    if ((toStatus === 'BOUGHT' || toStatus === 'SOLD') && userRole !== 'MANAGER' && userRole !== 'SUPERADMIN') {
-      return false;
-    }
-    
+    // Only SUPERADMIN can set PAID status
     if (toStatus === 'PAID' && userRole !== 'SUPERADMIN') {
       return false;
     }
-
-    return allowedTransitions.includes(toStatus);
+    
+    // Otherwise allow all transitions for managers and superadmins
+    return true;
   }
 }
 
