@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
-import { useLeads } from "@/hooks/use-leads";
+import { useLeads, useUpdateLeadStatus } from "@/hooks/use-leads";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -45,6 +45,7 @@ export default function LeadsPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
 
   const { data: leads, isLoading } = useLeads(filters);
+  const updateLeadStatusMutation = useUpdateLeadStatus();
 
   if (!user || user.role === 'VA') {
     return (
@@ -75,6 +76,10 @@ export default function LeadsPage() {
     } else {
       setSelectedLeads(prev => prev.filter(id => id !== leadId));
     }
+  };
+
+  const handleStatusChange = (leadId: string, newStatus: string) => {
+    updateLeadStatusMutation.mutate({ id: leadId, status: newStatus });
   };
 
   return (
@@ -231,12 +236,27 @@ export default function LeadsPage() {
                         {lead.vaName || 'Unknown'}
                       </TableCell>
                       <TableCell>
-                        <Badge 
-                          className={statusColors[lead.status]}
-                          data-testid={`status-${lead.status.toLowerCase()}`}
+                        <Select 
+                          value={lead.status} 
+                          onValueChange={(value) => handleStatusChange(lead.id, value)}
+                          disabled={updateLeadStatusMutation.isPending}
                         >
-                          {lead.status}
-                        </Badge>
+                          <SelectTrigger 
+                            className={`w-32 h-7 text-xs ${statusColors[lead.status]} border-none`}
+                            data-testid={`status-select-${lead.id}`}
+                          >
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="PENDING">Pending</SelectItem>
+                            <SelectItem value="APPROVED">Approved</SelectItem>
+                            <SelectItem value="CONTACTED">Contacted</SelectItem>
+                            <SelectItem value="BOUGHT">Bought</SelectItem>
+                            <SelectItem value="SOLD">Sold</SelectItem>
+                            <SelectItem value="PAID">Paid</SelectItem>
+                            <SelectItem value="REJECTED">Rejected</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </TableCell>
                       <TableCell>{formatCurrency(lead.askingPrice)}</TableCell>
                       <TableCell className="text-emerald-600 font-medium">
