@@ -41,11 +41,11 @@ export default function KanbanPage() {
   }
 
   const handleStatusChange = (leadId: string, newStatus: LeadStatus) => {
-    updateLeadStatus.mutate({ leadId, status: newStatus });
+    updateLeadStatus.mutate({ id: leadId, status: newStatus });
   };
 
   // Filter leads based on search term and status
-  const filteredLeads = leads.filter((lead) => {
+  const filteredLeads = leads.filter((lead: Lead) => {
     const matchesSearch = 
       `${lead.year} ${lead.make} ${lead.model}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
       lead.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -57,7 +57,7 @@ export default function KanbanPage() {
   });
 
   // Group leads by status for summary
-  const statusCounts = leads.reduce((acc, lead) => {
+  const statusCounts = leads.reduce((acc: Record<string, number>, lead: Lead) => {
     acc[lead.status] = (acc[lead.status] || 0) + 1;
     return acc;
   }, {} as Record<string, number>);
@@ -164,7 +164,7 @@ export default function KanbanPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredLeads.map((lead) => (
+                {filteredLeads.map((lead: Lead) => (
                   <TableRow key={lead.id} className="hover:bg-slate-50" data-testid={`lead-row-${lead.id}`}>
                     <TableCell>
                       <div className="font-medium text-slate-900">
