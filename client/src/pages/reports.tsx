@@ -130,7 +130,7 @@ export default function ReportsPage() {
                   <Skeleton className="h-8 w-24 mt-2" />
                 ) : (
                   <p className="text-2xl font-semibold text-slate-900" data-testid="total-revenue">
-                    $347,500
+                    £347,500
                   </p>
                 )}
                 <p className="text-xs text-emerald-600 mt-1">+18% from last period</p>
@@ -151,7 +151,7 @@ export default function ReportsPage() {
                   <Skeleton className="h-8 w-24 mt-2" />
                 ) : (
                   <p className="text-2xl font-semibold text-slate-900" data-testid="commission-paid">
-                    $34,750
+                    £34,750
                   </p>
                 )}
                 <p className="text-xs text-blue-600 mt-1">10% of total revenue</p>
@@ -172,10 +172,10 @@ export default function ReportsPage() {
                   <Skeleton className="h-8 w-24 mt-2" />
                 ) : (
                   <p className="text-2xl font-semibold text-slate-900" data-testid="avg-lead-value">
-                    $4,820
+                    £4,820
                   </p>
                 )}
-                <p className="text-xs text-emerald-600 mt-1">+$340 from last period</p>
+                <p className="text-xs text-emerald-600 mt-1">+£340 from last period</p>
               </div>
               <div className="w-12 h-12 bg-purple-50 rounded-lg flex items-center justify-center">
                 <Target className="w-6 h-6 text-purple-600" />
@@ -199,7 +199,7 @@ export default function ReportsPage() {
                 <span className="text-sm font-medium text-slate-900">Paid</span>
               </div>
               <span className="text-sm font-semibold text-slate-900" data-testid="commissions-paid">
-                $28,450
+                £28,450
               </span>
             </div>
             <div className="flex items-center justify-between p-4 bg-amber-50 rounded-lg">
@@ -208,7 +208,7 @@ export default function ReportsPage() {
                 <span className="text-sm font-medium text-slate-900">Due</span>
               </div>
               <span className="text-sm font-semibold text-slate-900" data-testid="commissions-due">
-                $12,450
+                £12,450
               </span>
             </div>
             <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
@@ -217,7 +217,7 @@ export default function ReportsPage() {
                 <span className="text-sm font-medium text-slate-900">Processing</span>
               </div>
               <span className="text-sm font-semibold text-slate-900" data-testid="commissions-processing">
-                $2,200
+                £2,200
               </span>
             </div>
           </CardContent>
@@ -297,7 +297,7 @@ export default function ReportsPage() {
                     <TableCell className="text-slate-900" data-testid={`avg-lead-value-${index}`}>
                       {va.approvedLeads > 0 
                         ? formatCurrency((parseFloat(va.totalProfit || '0') / va.approvedLeads).toString())
-                        : '$0'
+                        : '£0'
                       }
                     </TableCell>
                   </TableRow>
