@@ -102,7 +102,7 @@ export function useAuth() {
   });
 
   return {
-    user: user?.user as User | null,
+    user: user as User | null,
     isLoading,
     error,
     login: loginMutation.mutate,
