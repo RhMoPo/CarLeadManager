@@ -49,7 +49,7 @@ export default function KanbanPage() {
     const matchesSearch = 
       `${lead.year} ${lead.make} ${lead.model}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
       lead.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (lead.vaName && lead.vaName.toLowerCase().includes(searchTerm.toLowerCase()));
+      lead.vaId.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesStatus = statusFilter === "ALL" || lead.status === statusFilter;
     
@@ -170,7 +170,7 @@ export default function KanbanPage() {
                       <div className="font-medium text-slate-900">
                         {lead.year} {lead.make} {lead.model}
                       </div>
-                      <div className="text-sm text-slate-600">{lead.trim}</div>
+                      <div className="text-sm text-slate-600">VIN: {lead.vin || 'N/A'}</div>
                     </TableCell>
                     <TableCell className="text-slate-900">{lead.location}</TableCell>
                     <TableCell className="font-medium text-slate-900">
@@ -205,7 +205,7 @@ export default function KanbanPage() {
                     </TableCell>
                     {user.role !== 'VA' && (
                       <TableCell className="text-slate-900">
-                        {lead.vaName || 'Unassigned'}
+                        {lead.vaId || 'Unassigned'}
                       </TableCell>
                     )}
                     <TableCell>
