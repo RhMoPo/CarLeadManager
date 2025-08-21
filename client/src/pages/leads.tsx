@@ -37,8 +37,8 @@ const statusColors = {
 export default function LeadsPage() {
   const { user } = useAuth();
   const [filters, setFilters] = useState({
-    status: '',
-    vaId: '',
+    status: 'ALL',
+    vaId: 'ALL',
     make: '',
   });
   const [selectedLeads, setSelectedLeads] = useState<string[]>([]);
@@ -113,7 +113,7 @@ export default function LeadsPage() {
                   <SelectValue placeholder="All Statuses" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Statuses</SelectItem>
+                  <SelectItem value="ALL">All Statuses</SelectItem>
                   <SelectItem value="PENDING">Pending</SelectItem>
                   <SelectItem value="APPROVED">Approved</SelectItem>
                   <SelectItem value="CONTACTED">Contacted</SelectItem>
@@ -131,7 +131,7 @@ export default function LeadsPage() {
                   <SelectValue placeholder="All VAs" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All VAs</SelectItem>
+                  <SelectItem value="ALL">All VAs</SelectItem>
                   {/* TODO: Load actual VAs from API */}
                   <SelectItem value="1">Sarah Johnson</SelectItem>
                   <SelectItem value="2">Mike Chen</SelectItem>
