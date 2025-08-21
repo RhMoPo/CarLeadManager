@@ -9,7 +9,6 @@ import { useAuth } from "@/hooks/use-auth";
 // Pages
 import LoginPage from "@/pages/login";
 import DashboardPage from "@/pages/dashboard";
-import KanbanPage from "@/pages/kanban";
 import LeadsPage from "@/pages/leads";
 import LeadDetailPage from "@/pages/lead-detail";
 import SubmitLeadPage from "@/pages/submit-lead";
@@ -64,7 +63,6 @@ function Router() {
         
         {!isVA && (
           <>
-            <Route path="/kanban" component={KanbanPage} />
             <Route path="/leads" component={LeadsPage} />
             <Route path="/reports" component={ReportsPage} />
             <Route path="/settings" component={SettingsPage} />

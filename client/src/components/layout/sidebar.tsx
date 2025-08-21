@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
-  KanbanSquare,
   Car,
   BarChart3,
   Users,
@@ -15,7 +14,6 @@ import {
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard, roles: ["SUPERADMIN", "MANAGER", "VA"] },
-  { name: "Kanban Board", href: "/kanban", icon: KanbanSquare, roles: ["SUPERADMIN", "MANAGER"] },
   { name: "All Leads", href: "/leads", icon: Car, roles: ["SUPERADMIN", "MANAGER"] },
   { name: "Submit Lead", href: "/submit", icon: Car, roles: ["VA"] },
   { name: "Reports", href: "/reports", icon: BarChart3, roles: ["SUPERADMIN", "MANAGER"] },
