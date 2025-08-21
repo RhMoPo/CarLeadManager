@@ -56,7 +56,15 @@ export function LeadForm({ onSuccess, submitButtonText = "Create Lead", initialD
   });
 
   const onSubmit = (data: LeadFormData) => {
-    createLeadMutation.mutate(data, {
+    // Convert numbers to strings for server compatibility
+    const submitData = {
+      ...data,
+      askingPrice: data.askingPrice.toString(),
+      estimatedSalePrice: data.estimatedSalePrice.toString(),
+      expensesEstimate: data.expensesEstimate.toString(),
+    };
+    
+    createLeadMutation.mutate(submitData, {
       onSuccess: () => {
         form.reset();
         onSuccess?.();
