@@ -15,13 +15,9 @@ const leadSchema = z.object({
   model: z.string().min(1, "Model is required"),
   year: z.number().min(1990).max(new Date().getFullYear() + 1),
   mileage: z.number().min(0),
-  vin: z.string().optional(),
   askingPrice: z.number().min(0, "Asking price must be positive"),
   estimatedSalePrice: z.number().min(0, "Estimated sale price must be positive"),
-  expensesEstimate: z.number().min(0, "Expenses estimate must be positive"),
   sourceUrl: z.string().url("Must be a valid URL"),
-  sellerContact: z.string().min(1, "Seller contact is required"),
-  location: z.string().min(1, "Location is required"),
   vaId: z.string().optional(),
 });
 
@@ -44,24 +40,23 @@ export function LeadForm({ onSuccess, submitButtonText = "Create Lead", initialD
       model: initialData?.model || "",
       year: initialData?.year || new Date().getFullYear(),
       mileage: initialData?.mileage || 0,
-      vin: initialData?.vin || "",
       askingPrice: initialData?.askingPrice || 0,
       estimatedSalePrice: initialData?.estimatedSalePrice || 0,
-      expensesEstimate: initialData?.expensesEstimate || 0,
       sourceUrl: initialData?.sourceUrl || "",
-      sellerContact: initialData?.sellerContact || "",
-      location: initialData?.location || "",
       vaId: initialData?.vaId || undefined,
     },
   });
 
   const onSubmit = (data: LeadFormData) => {
-    // Convert numbers to strings for server compatibility
+    // Convert numbers to strings for server compatibility and add default values
     const submitData = {
       ...data,
       askingPrice: data.askingPrice.toString(),
       estimatedSalePrice: data.estimatedSalePrice.toString(),
-      expensesEstimate: data.expensesEstimate.toString(),
+      expensesEstimate: "0", // Default to 0
+      vin: "", // Default empty
+      sellerContact: "TBD", // Default placeholder
+      location: "TBD", // Default placeholder
     };
     
     createLeadMutation.mutate(submitData, {
@@ -145,21 +140,8 @@ export function LeadForm({ onSuccess, submitButtonText = "Create Lead", initialD
           />
         </div>
 
-        <FormField
-          control={form.control}
-          name="vin"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>VIN (Optional)</FormLabel>
-              <FormControl>
-                <Input placeholder="1HGBH41JXMN109186" {...field} data-testid="input-vin" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
             control={form.control}
             name="askingPrice"
@@ -198,25 +180,6 @@ export function LeadForm({ onSuccess, submitButtonText = "Create Lead", initialD
               </FormItem>
             )}
           />
-          <FormField
-            control={form.control}
-            name="expensesEstimate"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Expenses Estimate</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    placeholder="500"
-                    {...field}
-                    onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                    data-testid="input-expenses-estimate"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
         </div>
 
         <FormField
@@ -238,38 +201,7 @@ export function LeadForm({ onSuccess, submitButtonText = "Create Lead", initialD
           )}
         />
 
-        <FormField
-          control={form.control}
-          name="location"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Location</FormLabel>
-              <FormControl>
-                <Input placeholder="Los Angeles, CA" {...field} data-testid="input-location" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
 
-        <FormField
-          control={form.control}
-          name="sellerContact"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Seller Contact</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="Phone: (555) 123-4567&#10;Email: seller@example.com&#10;Name: John Doe"
-                  rows={3}
-                  {...field}
-                  data-testid="textarea-seller-contact"
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
 
         <div className="flex justify-end space-x-4">
           <Button
