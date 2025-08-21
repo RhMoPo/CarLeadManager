@@ -9,8 +9,10 @@ class CommissionService {
       return existingCommission;
     }
 
+    // Skip commission creation if no VA is assigned
     if (!lead.vaId) {
-      throw new Error('Lead must have a VA to create commission');
+      console.log('No VA assigned to lead, skipping commission creation');
+      return null;
     }
 
     // Get commission percentage from settings
