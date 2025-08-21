@@ -37,8 +37,8 @@ const statusColors = {
 export default function LeadsPage() {
   const { user } = useAuth();
   const [filters, setFilters] = useState({
-    status: 'ALL',
-    vaId: 'ALL',
+    status: '',
+    vaId: '',
     make: '',
   });
   const [selectedLeads, setSelectedLeads] = useState<string[]>([]);

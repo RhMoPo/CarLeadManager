@@ -147,13 +147,13 @@ export class DatabaseStorage implements IStorage {
   async getLeads(filters?: any): Promise<Lead[]> {
     let query = db.select().from(leads);
     
-    if (filters?.status) {
+    if (filters?.status && filters.status !== 'ALL' && filters.status !== '') {
       query = query.where(eq(leads.status, filters.status));
     }
-    if (filters?.vaId) {
+    if (filters?.vaId && filters.vaId !== 'ALL' && filters.vaId !== '') {
       query = query.where(eq(leads.vaId, filters.vaId));
     }
-    if (filters?.make) {
+    if (filters?.make && filters.make !== '') {
       query = query.where(ilike(leads.make, `%${filters.make}%`));
     }
     
