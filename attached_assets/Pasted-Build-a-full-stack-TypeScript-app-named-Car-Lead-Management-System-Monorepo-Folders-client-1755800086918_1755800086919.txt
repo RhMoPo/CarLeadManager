@@ -1,0 +1,156 @@
+Build a full-stack TypeScript app named "Car Lead Management System".
+
+Monorepo
+- Folders: client/, server/, shared/, migrations/, scripts/
+- Package manager: npm
+- Linting: ESLint + Prettier
+- TS config: strict true on both client and server
+
+Frontend
+- React 18 + Vite + TypeScript
+- Wouter for routing
+- TanStack Query for data
+- React Hook Form + Zod for forms
+- Tailwind + shadcn/ui + Radix
+- Icons: Lucide React
+- Pages: /, /dashboard, /kanban, /lead/:id, /submit, /login, /training, /settings, /user-management, /reports
+- Kanban implemented with @hello-pangea/dnd
+- VA view: Submit and read-only Kanban. Admin and Manager: full Dashboard, Kanban, Reports, Settings. Superadmin: full access including User Management.
+- Lead detail shows: main fields, link previews, history, commission breakdown, expenses list
+
+Backend
+- Express + TypeScript
+- Iron Session for session cookies
+- bcrypt for admin passwords
+- express-rate-limit
+- pino logging with redactions
+- Zod-based request validation shared from shared/
+- Optional Sentry hooks, disabled by default
+- Env validation at startup with Zod
+
+Auth model
+- Roles: SUPERADMIN, MANAGER, VA
+- Admins authenticate with email + password
+- VAs use passwordless magic links only
+- Endpoints:
+  - POST /api/login-password  { email, password } returns session
+  - POST /api/login-magic-request  { email } sends magic link
+  - POST /api/login-magic-consume  { token } returns session
+  - POST /api/logout
+  - GET  /api/user  returns { id, role, email }
+- Invite flow:
+  - POST /api/invites  (admin only) body { email, role } creates single-use token with TTL 7 days
+  - GET  /api/invites/:token  returns invite metadata
+  - POST /api/invites/accept  { token, email } creates account:
+      - If role=VA, account has no password and uses magic links
+      - If role in {MANAGER, SUPERADMIN}, require a password set step
+
+Leads
+- Schema fields: id, vaId, make, model, year, mileage, vin nullable, askingPrice, estimatedSalePrice, expensesEstimate, estimatedProfit cached, sourceUrl, normalizedSourceUrl, sellerContact, location, status, previewImageUrl nullable, createdAt, updatedAt
+- Lead status enum: PENDING, APPROVED, CONTACTED, BOUGHT, SOLD, PAID, REJECTED
+- API:
+  - GET    /api/leads
+  - GET    /api/leads/:id
+  - POST   /api/leads
+  - PATCH  /api/leads/:id
+  - PATCH  /api/leads/:id/status
+  - GET    /api/leads/:id/events
+- Server-side rules:
+  - Uniqueness: normalizedSourceUrl unique across table when not null. VIN unique when not null.
+  - Fuzzy guard: block submission if another lead in last 30 days has same make, model, location and askingPrice within 5 percent. Return 409 with the conflicting lead id.
+  - estimatedProfit = estimatedSalePrice - askingPrice - expensesEstimate. Clamp negative to 0 for commission purposes.
+- Link preview:
+  - On create or update, attempt to fetch og:image, og:title, og:description using an OG scraper with 2 second timeout. Save previewImageUrl if found.
+
+Kanban and status transitions
+- Implement @hello-pangea/dnd on /kanban
+- On drop, call PATCH /api/leads/:id/status with body { status }
+- VA cannot drag. Manager and Superadmin can drag.
+- Allowed moves:
+  - Between PENDING, APPROVED, CONTACTED freely
+  - To BOUGHT and SOLD requires Manager or Superadmin
+  - To PAID only Superadmin
+  - REJECTED allowed from PENDING, APPROVED, CONTACTED
+- Every change creates a lead_events row with before and after status, actor user id, and timestamp
+
+Commission
+- Settings has a single global "commissionPercent" number default 0.10
+- Commission becomes DUE automatically when status changes to SOLD
+- Mark paid:
+  - POST /api/commissions/mark-paid/:id (Manager or Superadmin)
+- API:
+  - GET  /api/commissions?leadId=:id
+  - POST /api/commissions/recalculate/:leadId
+- Export:
+  - GET  /api/commissions/export.csv
+
+Reports
+- Reports page shows:
+  - Profit by week
+  - Commission due summary
+  - VA leaderboard by total estimated profit and count of APPROVED
+- API: GET /api/kpis returns the metrics needed for these 3 charts
+
+Users and VAs
+- Tables: users, vas
+- Users: id, email unique, passwordHash nullable, role, isActive, createdAt, updatedAt
+- VAs: id, userId nullable, name, timezone nullable, notes nullable
+- Admin can create VA with or without linking to a user. If no user exists yet, VA can be created once the invite is accepted.
+
+Audit and history
+- lead_events table stores immutable history for each lead
+- audit_logs table stores system level actions, including login, invites, settings changes
+
+Database and migrations
+- Postgres with Drizzle ORM and Drizzle Kit
+- Provider: Neon serverless
+- Tables: users, vas, leads, lead_events, commissions, expenses, settings, audit_logs
+- Indexes:
+  - leads(status, createdAt)
+  - leads(make, model)
+  - leads(normalizedSourceUrl) unique where not null
+  - leads(vin) unique where not null
+  - lead_events(leadId, createdAt)
+
+Infrastructure
+- Object storage not used for now
+- Env vars:
+  - DATABASE_URL
+  - SESSION_PASSWORD
+  - DISCORD_WEBHOOK_URL_optional
+  - SENTRY_DSN_optional
+
+Security and limits
+- Session cookies httpOnly, secure in prod, sameSite=lax
+- Rate limits:
+  - Public: 60 per minute
+  - Authenticated: 120 per minute
+- CSRF: Lax cookie strategy with sameSite and POST-only JSON API
+- Password policy for admins: min length 12
+
+Observability
+- pino logs, redact password, session, auth
+- Optional Sentry wiring points in server but disabled by default
+
+Testing
+- Vitest unit tests for:
+  - magic link token validation
+  - lead dedup normalization and fuzzy guard
+  - commission calculation
+  - status transition validator
+- Playwright e2e for:
+  - VA invite accept, magic login, submit lead
+  - Manager drags lead across stages to SOLD
+  - Commission shows DUE, export CSV
+
+Bug fix
+- client/pages/kanban.tsx must import:
+  import { DragDropContext, Droppable, Draggable, type DropResult } from "@hello-pangea/dnd";
+- Do not unmount Droppable while dragging. Handlers must be idempotent under React 18 StrictMode.
+
+Seed
+- scripts/seed.ts reads ADMIN_EMAIL and ADMIN_PASSWORD, creates SUPERADMIN if none exists
+
+Deliverables
+- Running dev server with one npm command
+- README with setup steps and env docs
