@@ -93,7 +93,8 @@ export function useAuth() {
       await apiRequest("POST", "/api/logout");
     },
     onSuccess: () => {
-      queryClient.clear();
+      // Invalidate user query to trigger re-fetch and redirect to login
+      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
       toast({
         title: "Logged out",
         description: "You have been successfully logged out",
