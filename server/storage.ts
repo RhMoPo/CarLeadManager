@@ -8,7 +8,7 @@ import {
   type MagicToken, type UserRole, type LeadStatus
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, asc, sql, gte, like, ilike, count, sum } from "drizzle-orm";
+import { eq, and, desc, asc, sql, gte, like, ilike, count, sum, isNull, gt } from "drizzle-orm";
 
 export interface IStorage {
   // Users
@@ -370,6 +370,16 @@ export class DatabaseStorage implements IStorage {
     await db.update(invites)
       .set({ usedAt: new Date() })
       .where(eq(invites.token, token));
+  }
+
+  async getPendingInvites(): Promise<Invite[]> {
+    return await db.select()
+      .from(invites)
+      .where(and(
+        isNull(invites.usedAt),
+        gt(invites.expiresAt, new Date())
+      ))
+      .orderBy(desc(invites.createdAt));
   }
 
   // Magic Tokens

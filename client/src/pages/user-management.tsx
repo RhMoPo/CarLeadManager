@@ -23,6 +23,8 @@ import {
   Power,
   User,
   BarChart3,
+  Copy,
+  Clock,
 } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 
@@ -39,6 +41,11 @@ export default function UserManagementPage() {
   const { data: vas, isLoading: vasLoading } = useQuery({
     queryKey: ['/api/vas'],
     enabled: user?.role !== 'VA',
+  });
+
+  const { data: invites, isLoading: invitesLoading } = useQuery({
+    queryKey: ['/api/invites'],
+    enabled: user?.role === 'SUPERADMIN',
   });
 
   const toggleUserStatusMutation = useMutation({
@@ -87,6 +94,23 @@ export default function UserManagementPage() {
         return 'bg-green-100 text-green-800';
       default:
         return 'bg-slate-100 text-slate-800';
+    }
+  };
+
+  const copyInviteLink = async (token: string) => {
+    const inviteUrl = `${window.location.origin}/invite/${token}`;
+    try {
+      await navigator.clipboard.writeText(inviteUrl);
+      toast({
+        title: "Invite link copied!",
+        description: "The invitation link has been copied to your clipboard",
+      });
+    } catch (err) {
+      toast({
+        title: "Failed to copy",
+        description: "Could not copy the invite link to clipboard",
+        variant: "destructive",
+      });
     }
   };
 
@@ -308,6 +332,91 @@ export default function UserManagementPage() {
                   <TableRow>
                     <TableCell colSpan={6} className="text-center py-8 text-slate-500">
                       No VAs found
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Pending Invitations */}
+      <Card className="mt-6">
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <Clock className="w-5 h-5 mr-2" />
+            Pending Invitations
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          {invitesLoading ? (
+            <div className="p-6 space-y-3">
+              {[1, 2, 3].map((i) => (
+                <Skeleton key={i} className="h-16 w-full" />
+              ))}
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Role</TableHead>
+                  <TableHead>Created</TableHead>
+                  <TableHead>Expires</TableHead>
+                  <TableHead>Invitation Link</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {invites?.map((invite: any) => (
+                  <TableRow key={invite.id} className="hover:bg-slate-50" data-testid={`invite-row-${invite.id}`}>
+                    <TableCell>
+                      <div className="flex items-center">
+                        <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center mr-3">
+                          <span className="text-sm font-medium text-orange-600">
+                            {invite.email?.charAt(0).toUpperCase() || 'I'}
+                          </span>
+                        </div>
+                        <div>
+                          <div className="font-medium text-slate-900" data-testid={`invite-email-${invite.id}`}>
+                            {invite.email}
+                          </div>
+                          <div className="text-sm text-slate-500">Pending acceptance</div>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={getRoleBadgeColor(invite.role)} data-testid={`invite-role-${invite.id}`}>
+                        {invite.role}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-slate-500 text-sm" data-testid={`invite-created-${invite.id}`}>
+                      {formatDate(invite.createdAt)}
+                    </TableCell>
+                    <TableCell className="text-slate-500 text-sm" data-testid={`invite-expires-${invite.id}`}>
+                      {formatDate(invite.expiresAt)}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center space-x-2">
+                        <code className="text-xs bg-slate-100 p-1 rounded truncate max-w-[200px]">
+                          {window.location.origin}/invite/{invite.token.slice(0, 8)}...
+                        </code>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => copyInviteLink(invite.token)}
+                          data-testid={`button-copy-invite-${invite.id}`}
+                        >
+                          <Copy className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {(!invites || invites.length === 0) && (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center py-8 text-slate-500">
+                      No pending invitations
                     </TableCell>
                   </TableRow>
                 )}

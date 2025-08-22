@@ -186,6 +186,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get all pending invites (for admin)
+  app.get('/api/invites', requireAuth, requireRole(['MANAGER', 'SUPERADMIN']), async (req, res, next) => {
+    try {
+      const invites = await storage.getPendingInvites();
+      res.json(invites);
+    } catch (error) {
+      next(error);
+    }
+  });
+
   app.get('/api/invites/:token', async (req, res, next) => {
     try {
       const { token } = req.params;
