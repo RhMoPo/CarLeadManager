@@ -278,6 +278,7 @@ export const insertInviteSchema = createInsertSchema(invites).omit({
   token: true,
   expiresAt: true,
   usedAt: true,
+  createdBy: true,
   createdAt: true,
 });
 
