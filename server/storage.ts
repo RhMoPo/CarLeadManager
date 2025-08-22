@@ -16,6 +16,7 @@ export interface IStorage {
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: string, updates: Partial<User>): Promise<User>;
+  deleteUser(id: string): Promise<void>;
   getAllUsers(): Promise<User[]>;
 
   // VAs
@@ -23,6 +24,7 @@ export interface IStorage {
   getVaByUserId(userId: string): Promise<Va | undefined>;
   createVa(va: InsertVa): Promise<Va>;
   updateVa(id: string, updates: Partial<Va>): Promise<Va>;
+  deleteVa(id: string): Promise<void>;
   getAllVas(): Promise<Va[]>;
 
   // Leads
@@ -103,6 +105,10 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
+  async deleteUser(id: string): Promise<void> {
+    await db.delete(users).where(eq(users.id, id));
+  }
+
   async getAllUsers(): Promise<User[]> {
     return await db.select().from(users).orderBy(desc(users.createdAt));
   }
@@ -132,6 +138,10 @@ export class DatabaseStorage implements IStorage {
       .where(eq(vas.id, id))
       .returning();
     return va;
+  }
+
+  async deleteVa(id: string): Promise<void> {
+    await db.delete(vas).where(eq(vas.id, id));
   }
 
   async getAllVas(): Promise<Va[]> {

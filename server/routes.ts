@@ -569,6 +569,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Delete VA account
+  app.delete('/api/vas/:id', requireAuth, requireRole(['MANAGER', 'SUPERADMIN']), async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      
+      // Get VA to check if it exists and get user ID
+      const va = await storage.getVa(id);
+      if (!va) {
+        return res.status(404).json({ message: 'VA not found' });
+      }
+
+      // Delete VA record
+      await storage.deleteVa(id);
+
+      // Delete associated user account if it exists
+      if (va.userId) {
+        await storage.deleteUser(va.userId);
+      }
+
+      await storage.createAuditLog({
+        userId: req.session.userId!,
+        action: 'DELETE_VA_ACCOUNT',
+        resourceType: 'va',
+        resourceId: id,
+        details: `Deleted VA account: ${va.name}`,
+        ipAddress: req.ip || null,
+        userAgent: req.get('User-Agent') || null,
+      });
+
+      res.json({ message: 'VA account deleted successfully' });
+    } catch (error) {
+      next(error);
+    }
+  });
+
   app.post('/api/vas', requireAuth, requireRole(['MANAGER', 'SUPERADMIN']), async (req, res, next) => {
     try {
       const data = insertVaSchema.parse(req.body);

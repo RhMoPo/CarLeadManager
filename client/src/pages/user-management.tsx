@@ -26,6 +26,7 @@ import {
   BarChart3,
   Copy,
   Clock,
+  Trash2,
 } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 
@@ -71,6 +72,28 @@ export default function UserManagementPage() {
     },
   });
 
+  const deleteVaMutation = useMutation({
+    mutationFn: async (vaId: string) => {
+      const res = await apiRequest('DELETE', `/api/vas/${vaId}`);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/vas'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+      toast({
+        title: "VA account deleted",
+        description: "The VA account has been permanently deleted",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to delete VA",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   if (!user || user.role !== 'SUPERADMIN') {
     return (
       <div className="flex-1 p-6">
@@ -84,6 +107,12 @@ export default function UserManagementPage() {
 
   const handleToggleUserStatus = (userId: string, isActive: boolean) => {
     toggleUserStatusMutation.mutate({ userId, isActive });
+  };
+
+  const handleDeleteVa = (va: any) => {
+    if (window.confirm(`Are you sure you want to delete VA "${va.name}"? This will permanently delete their account and cannot be undone.`)) {
+      deleteVaMutation.mutate(va.id);
+    }
   };
 
   const getRoleBadgeColor = (role: string) => {
@@ -337,6 +366,16 @@ export default function UserManagementPage() {
                           data-testid={`button-view-performance-${va.id}`}
                         >
                           <BarChart3 className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleDeleteVa(va)}
+                          disabled={deleteVaMutation.isPending}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          data-testid={`button-delete-va-${va.id}`}
+                        >
+                          <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
                     </TableCell>
