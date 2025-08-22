@@ -15,6 +15,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { InviteUserModal } from "@/components/modals/invite-user-modal";
+import { CreateVaModal } from "@/components/modals/create-va-modal";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
 import {
@@ -32,18 +33,19 @@ export default function UserManagementPage() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [showInviteModal, setShowInviteModal] = useState(false);
+  const [showCreateVaModal, setShowCreateVaModal] = useState(false);
 
-  const { data: users, isLoading: usersLoading } = useQuery({
+  const { data: users = [], isLoading: usersLoading } = useQuery({
     queryKey: ['/api/users'],
     enabled: user?.role === 'SUPERADMIN',
   });
 
-  const { data: vas, isLoading: vasLoading } = useQuery({
+  const { data: vas = [], isLoading: vasLoading } = useQuery({
     queryKey: ['/api/vas'],
     enabled: user?.role !== 'VA',
   });
 
-  const { data: invites, isLoading: invitesLoading } = useQuery({
+  const { data: invites = [], isLoading: invitesLoading } = useQuery({
     queryKey: ['/api/invites'],
     enabled: user?.role === 'SUPERADMIN',
   });
@@ -122,15 +124,27 @@ export default function UserManagementPage() {
             <h2 className="text-2xl font-semibold text-slate-900">User Management</h2>
             <p className="text-slate-600 mt-1">Manage users, VAs, and system access</p>
           </div>
-          <Dialog open={showInviteModal} onOpenChange={setShowInviteModal}>
-            <DialogTrigger asChild>
-              <Button data-testid="button-invite-user">
-                <UserPlus className="w-4 h-4 mr-2" />
-                Invite User
-              </Button>
-            </DialogTrigger>
-            <InviteUserModal onSuccess={() => setShowInviteModal(false)} />
-          </Dialog>
+          <div className="flex space-x-3">
+            <Dialog open={showCreateVaModal} onOpenChange={setShowCreateVaModal}>
+              <DialogTrigger asChild>
+                <Button data-testid="button-create-va">
+                  <UserPlus className="w-4 h-4 mr-2" />
+                  Create VA Account
+                </Button>
+              </DialogTrigger>
+              <CreateVaModal onSuccess={() => setShowCreateVaModal(false)} />
+            </Dialog>
+            
+            <Dialog open={showInviteModal} onOpenChange={setShowInviteModal}>
+              <DialogTrigger asChild>
+                <Button variant="outline" data-testid="button-invite-user">
+                  <UserPlus className="w-4 h-4 mr-2" />
+                  Invite Manager
+                </Button>
+              </DialogTrigger>
+              <InviteUserModal onSuccess={() => setShowInviteModal(false)} />
+            </Dialog>
+          </div>
         </div>
       </div>
 

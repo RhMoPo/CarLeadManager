@@ -62,6 +62,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.createAuditLog({
         userId: user.id,
         action: 'LOGIN',
+        resourceType: 'user',
+        resourceId: user.id,
         details: 'Password login',
         ipAddress: req.ip || null,
         userAgent: req.get('User-Agent') || null,
@@ -107,6 +109,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.createAuditLog({
         userId: user.id,
         action: 'LOGIN',
+        resourceType: 'user',
+        resourceId: user.id,
         details: 'Magic link login',
         ipAddress: req.ip || null,
         userAgent: req.get('User-Agent') || null,
@@ -124,8 +128,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await storage.createAuditLog({
           userId: req.session.userId,
           action: 'LOGOUT',
-          ipAddress: req.ip,
-          userAgent: req.get('User-Agent'),
+          resourceType: 'user',
+          resourceId: req.session.userId,
+          details: 'User logged out',
+          ipAddress: req.ip || null,
+          userAgent: req.get('User-Agent') || null,
         });
       }
 
@@ -178,7 +185,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       // TODO: Send email with invite link
-      logger.info('Invite created', { inviteId: invite.id, email: data.email, role: data.role });
+      logger.info('Invite created');
 
       res.json({ id: invite.id, email: invite.email, role: invite.role });
     } catch (error) {
@@ -489,6 +496,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const vas = await storage.getAllVas();
       res.json(vas);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Create VA account directly with credentials
+  app.post('/api/vas/create-account', requireAuth, requireRole(['MANAGER', 'SUPERADMIN']), async (req, res, next) => {
+    try {
+      const { email, name } = req.body;
+      
+      if (!email || !name) {
+        return res.status(400).json({ message: 'Email and name are required' });
+      }
+
+      // Check if user already exists
+      const existingUser = await storage.getUserByEmail(email);
+      if (existingUser) {
+        return res.status(400).json({ message: 'User with this email already exists' });
+      }
+
+      // Generate password
+      const password = randomBytes(12).toString('base64').slice(0, 12);
+      const passwordHash = await authService.hashPassword(password);
+
+      // Create user account
+      const userData = {
+        email,
+        role: 'VA' as const,
+        passwordHash,
+        isActive: true,
+      };
+
+      const user = await storage.createUser(userData);
+
+      // Create VA record
+      const vaData = {
+        userId: user.id,
+        name,
+        phoneNumber: null,
+        profilePicture: null,
+        totalCommissions: 0,
+        isActive: true,
+      };
+
+      const va = await storage.createVa(vaData);
+
+      await storage.createAuditLog({
+        userId: req.session.userId!,
+        action: 'CREATE_VA_ACCOUNT',
+        resourceType: 'user',
+        resourceId: user.id,
+        details: `Created VA account for ${name} (${email})`,
+        ipAddress: req.ip || null,
+        userAgent: req.get('User-Agent') || null,
+      });
+
+      res.status(201).json({
+        user: {
+          id: user.id,
+          email: user.email,
+          role: user.role
+        },
+        va: {
+          id: va.id,
+          name: va.name
+        },
+        password // Return the plain password for sharing
+      });
     } catch (error) {
       next(error);
     }
