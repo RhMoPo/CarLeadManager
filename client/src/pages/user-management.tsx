@@ -75,7 +75,15 @@ export default function UserManagementPage() {
   const deleteVaMutation = useMutation({
     mutationFn: async (vaId: string) => {
       const res = await apiRequest('DELETE', `/api/vas/${vaId}`);
-      return res.json();
+      try {
+        return await res.json();
+      } catch (e) {
+        // If JSON parsing fails, return success if status is ok
+        if (res.ok) {
+          return { message: 'VA account deleted successfully' };
+        }
+        throw new Error('Failed to delete VA account');
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/vas'] });
@@ -88,7 +96,7 @@ export default function UserManagementPage() {
     onError: (error: any) => {
       toast({
         title: "Failed to delete VA",
-        description: error.message,
+        description: error.message || "An error occurred while deleting the VA account",
         variant: "destructive",
       });
     },
