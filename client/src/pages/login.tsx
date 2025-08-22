@@ -3,20 +3,11 @@ import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { LoginForm } from "@/components/auth/login-form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Car } from "lucide-react";
 
 export default function LoginPage() {
   const [, setLocation] = useLocation();
-  const { user, consumeMagicLink } = useAuth();
-  const [searchParams] = useState(() => new URLSearchParams(window.location.search));
-  const magicToken = searchParams.get('token');
-
-  useEffect(() => {
-    if (magicToken) {
-      consumeMagicLink(magicToken);
-    }
-  }, [magicToken, consumeMagicLink]);
+  const { user } = useAuth();
 
   useEffect(() => {
     if (user) {
@@ -36,33 +27,14 @@ export default function LoginPage() {
         </div>
 
         <Card>
-          <CardContent className="p-6">
-            <Tabs defaultValue="admin" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="admin" data-testid="tab-admin">Admin Login</TabsTrigger>
-                <TabsTrigger value="va" data-testid="tab-va">VA Magic Link</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="admin">
-                <CardHeader className="px-0 pt-4">
-                  <CardTitle>Admin Login</CardTitle>
-                  <CardDescription>
-                    Sign in with your email and password
-                  </CardDescription>
-                </CardHeader>
-                <LoginForm type="password" />
-              </TabsContent>
-              
-              <TabsContent value="va">
-                <CardHeader className="px-0 pt-4">
-                  <CardTitle>VA Magic Link</CardTitle>
-                  <CardDescription>
-                    We'll send you a secure login link to your email address
-                  </CardDescription>
-                </CardHeader>
-                <LoginForm type="magic-link" />
-              </TabsContent>
-            </Tabs>
+          <CardHeader>
+            <CardTitle>Welcome Back</CardTitle>
+            <CardDescription>
+              Sign in with your email and password
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <LoginForm type="password" />
           </CardContent>
         </Card>
       </div>

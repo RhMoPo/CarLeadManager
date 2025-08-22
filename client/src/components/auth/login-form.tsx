@@ -34,7 +34,7 @@ export function LoginForm({ type }: LoginFormProps) {
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder={type === 'password' ? 'admin@company.com' : 'va@company.com'}
+          placeholder="your@email.com"
           required
           data-testid="input-email"
         />
