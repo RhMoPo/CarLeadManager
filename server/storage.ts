@@ -250,7 +250,7 @@ export class DatabaseStorage implements IStorage {
     }
 
 
-    // Fuzzy matching: same make, model, location and asking price within 5%
+    // Fuzzy matching: same make, model and asking price within 5%
     const priceVariance = parseFloat(lead.askingPrice.toString()) * 0.05;
     const minPrice = parseFloat(lead.askingPrice.toString()) - priceVariance;
     const maxPrice = parseFloat(lead.askingPrice.toString()) + priceVariance;
@@ -262,7 +262,6 @@ export class DatabaseStorage implements IStorage {
       .where(and(
         eq(leads.make, lead.make),
         eq(leads.model, lead.model),
-        eq(leads.location, lead.location),
         gte(leads.askingPrice, minPrice.toString()),
         gte(leads.createdAt, thirtyDaysAgo)
       ));

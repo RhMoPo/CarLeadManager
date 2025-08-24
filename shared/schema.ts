@@ -63,7 +63,6 @@ export const leads = pgTable("leads", {
   sourceUrl: text("source_url").notNull(),
   normalizedSourceUrl: text("normalized_source_url"),
   sellerContact: text("seller_contact").notNull(),
-  location: text("location").notNull(),
   status: leadStatusEnum("status").default("PENDING").notNull(),
   previewImageUrl: text("preview_image_url"),
   createdAt: timestamp("created_at").defaultNow().notNull(),

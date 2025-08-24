@@ -333,7 +333,7 @@ export default function LeadsPage() {
                               {lead.year} {lead.make} {lead.model}
                             </button>
                             <div className="text-sm text-slate-500">
-                              {lead.location} • {lead.mileage.toLocaleString()} mi
+                              {lead.mileage.toLocaleString()} mi
                             </div>
                           </div>
                         </div>

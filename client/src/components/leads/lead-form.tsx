@@ -62,7 +62,6 @@ export function LeadForm({ onSuccess, submitButtonText = "Create Lead", initialD
       estimatedSalePrice: (data.estimatedSalePrice || 0).toString(),
       expensesEstimate: "0", // Default to 0
       sellerContact: "TBD", // Default placeholder
-      location: "TBD", // Default placeholder
     };
     
     createLeadMutation.mutate(submitData, {

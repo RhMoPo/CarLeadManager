@@ -189,10 +189,6 @@ export default function LeadDetailPage() {
               
               <Separator />
               
-              <div>
-                <label className="text-sm font-medium text-slate-600">Location</label>
-                <p className="text-slate-900" data-testid="lead-location">{lead.location}</p>
-              </div>
               
               <div>
                 <label className="text-sm font-medium text-slate-600">Source URL</label>
