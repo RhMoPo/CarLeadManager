@@ -1,4 +1,4 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, Redirect } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -58,12 +58,26 @@ function Router() {
         <Route path="/lead/:id" component={LeadDetailPage} />
         <Route path="/training" component={TrainingPage} />
         
+        {/* Admin-only routes */}
         {isSuperAdmin && (
           <Route path="/settings" component={SettingsPage} />
         )}
         
         {isSuperAdmin && (
           <Route path="/user-management" component={UserManagementPage} />
+        )}
+        
+        {/* Redirect VA users away from admin-only pages */}
+        {isVA && (
+          <Route path="/settings">
+            <Redirect to="/leads" />
+          </Route>
+        )}
+        
+        {isVA && (
+          <Route path="/user-management">
+            <Redirect to="/leads" />
+          </Route>
         )}
         
         <Route component={NotFound} />
