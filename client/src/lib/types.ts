@@ -1,7 +1,7 @@
 export interface User {
   id: string;
   email: string;
-  role: 'SUPERADMIN' | 'MANAGER' | 'VA';
+  role: 'SUPERADMIN' | 'VA';
 }
 
 export interface Lead {

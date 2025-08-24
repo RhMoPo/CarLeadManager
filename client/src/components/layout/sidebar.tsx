@@ -11,9 +11,9 @@ import {
 } from "lucide-react";
 
 const navigation = [
-  { name: "Leads", href: "/leads", icon: Car, roles: ["SUPERADMIN", "MANAGER", "VA"] },
+  { name: "Leads", href: "/leads", icon: Car, roles: ["SUPERADMIN", "VA"] },
   { name: "User Management", href: "/user-management", icon: Users, roles: ["SUPERADMIN"] },
-  { name: "Settings", href: "/settings", icon: Settings, roles: ["SUPERADMIN", "MANAGER"] },
+  { name: "Settings", href: "/settings", icon: Settings, roles: ["SUPERADMIN"] },
 ];
 
 export function Sidebar() {

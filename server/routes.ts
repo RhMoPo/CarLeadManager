@@ -161,7 +161,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Invite routes
-  app.post('/api/invites', requireAuth, requireRole(['MANAGER', 'SUPERADMIN']), async (req, res, next) => {
+  app.post('/api/invites', requireAuth, requireRole(['SUPERADMIN']), async (req, res, next) => {
     try {
       const data = insertInviteSchema.parse(req.body);
       const token = randomBytes(32).toString('hex');
@@ -194,7 +194,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get all pending invites (for admin)
-  app.get('/api/invites', requireAuth, requireRole(['MANAGER', 'SUPERADMIN']), async (req, res, next) => {
+  app.get('/api/invites', requireAuth, requireRole(['SUPERADMIN']), async (req, res, next) => {
     try {
       const invites = await storage.getPendingInvites();
       res.json(invites);
@@ -402,7 +402,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Commission routes
-  app.get('/api/commissions', requireAuth, requireRole(['MANAGER', 'SUPERADMIN']), async (req, res, next) => {
+  app.get('/api/commissions', requireAuth, requireRole(['SUPERADMIN']), async (req, res, next) => {
     try {
       const { leadId } = req.query;
       
@@ -418,7 +418,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/commissions/mark-paid/:id', requireAuth, requireRole(['MANAGER', 'SUPERADMIN']), async (req, res, next) => {
+  app.post('/api/commissions/mark-paid/:id', requireAuth, requireRole(['SUPERADMIN']), async (req, res, next) => {
     try {
       const { id } = req.params;
       
@@ -444,7 +444,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/commissions/recalculate/:leadId', requireAuth, requireRole(['MANAGER', 'SUPERADMIN']), async (req, res, next) => {
+  app.post('/api/commissions/recalculate/:leadId', requireAuth, requireRole(['SUPERADMIN']), async (req, res, next) => {
     try {
       const { leadId } = req.params;
       await commissionService.recalculateCommission(leadId);
@@ -454,7 +454,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/commissions/export.csv', requireAuth, requireRole(['MANAGER', 'SUPERADMIN']), async (req, res, next) => {
+  app.get('/api/commissions/export.csv', requireAuth, requireRole(['SUPERADMIN']), async (req, res, next) => {
     try {
       const csv = await commissionService.exportCommissionsCSV();
       res.setHeader('Content-Type', 'text/csv');
@@ -475,7 +475,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/vas', requireAuth, requireRole(['MANAGER', 'SUPERADMIN']), async (req, res, next) => {
+  app.get('/api/vas', requireAuth, requireRole(['SUPERADMIN']), async (req, res, next) => {
     try {
       const vas = await storage.getAllVas();
       res.json(vas);
@@ -485,7 +485,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Create VA account directly with credentials
-  app.post('/api/vas/create-account', requireAuth, requireRole(['MANAGER', 'SUPERADMIN']), async (req, res, next) => {
+  app.post('/api/vas/create-account', requireAuth, requireRole(['SUPERADMIN']), async (req, res, next) => {
     try {
       const { email, name } = req.body;
       
@@ -553,7 +553,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Delete VA account
-  app.delete('/api/vas/:id', requireAuth, requireRole(['MANAGER', 'SUPERADMIN']), async (req, res, next) => {
+  app.delete('/api/vas/:id', requireAuth, requireRole(['SUPERADMIN']), async (req, res, next) => {
     try {
       const { id } = req.params;
       
@@ -587,7 +587,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/vas', requireAuth, requireRole(['MANAGER', 'SUPERADMIN']), async (req, res, next) => {
+  app.post('/api/vas', requireAuth, requireRole(['SUPERADMIN']), async (req, res, next) => {
     try {
       const data = insertVaSchema.parse(req.body);
       const va = await storage.createVa(data);
@@ -609,7 +609,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Settings routes
-  app.get('/api/settings', requireAuth, requireRole(['MANAGER', 'SUPERADMIN']), async (req, res, next) => {
+  app.get('/api/settings', requireAuth, requireRole(['SUPERADMIN']), async (req, res, next) => {
     try {
       const settings = await storage.getAllSettings();
       const settingsMap = settings.reduce((acc, setting) => {
@@ -622,7 +622,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put('/api/settings/:key', requireAuth, requireRole(['MANAGER', 'SUPERADMIN']), async (req, res, next) => {
+  app.put('/api/settings/:key', requireAuth, requireRole(['SUPERADMIN']), async (req, res, next) => {
     try {
       const { key } = req.params;
       const { value } = req.body;

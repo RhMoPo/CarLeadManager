@@ -47,7 +47,6 @@ function Router() {
 
   // Role-based routing
   const isVA = user.role === 'VA';
-  const isManager = user.role === 'MANAGER';
   const isSuperAdmin = user.role === 'SUPERADMIN';
 
   return (
@@ -57,7 +56,7 @@ function Router() {
         <Route path="/leads" component={LeadsPage} />
         <Route path="/lead/:id" component={LeadDetailPage} />
         
-        {!isVA && (
+        {isSuperAdmin && (
           <Route path="/settings" component={SettingsPage} />
         )}
         

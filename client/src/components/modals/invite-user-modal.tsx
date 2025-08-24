@@ -92,7 +92,6 @@ export function InviteUserModal({ onSuccess }: InviteUserModalProps) {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="VA">Virtual Assistant</SelectItem>
-              <SelectItem value="MANAGER">Manager</SelectItem>
               <SelectItem value="SUPERADMIN">Super Admin</SelectItem>
             </SelectContent>
           </Select>
@@ -101,9 +100,8 @@ export function InviteUserModal({ onSuccess }: InviteUserModalProps) {
         <div className="text-sm text-slate-600 bg-slate-50 p-3 rounded-md">
           <p className="font-medium mb-1">Role Permissions:</p>
           <ul className="text-xs space-y-1">
-            <li><strong>VA:</strong> Submit leads, view kanban (read-only)</li>
-            <li><strong>Manager:</strong> Full access except user management</li>
-            <li><strong>Super Admin:</strong> Full system access</li>
+            <li><strong>VA:</strong> Submit and view leads</li>
+            <li><strong>Super Admin:</strong> Full system access and management</li>
           </ul>
         </div>
         

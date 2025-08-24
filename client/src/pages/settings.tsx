@@ -74,7 +74,7 @@ export default function SettingsPage() {
     },
   });
 
-  if (!user || (user.role !== 'MANAGER' && user.role !== 'SUPERADMIN')) {
+  if (!user || user.role !== 'SUPERADMIN') {
     return (
       <div className="flex-1 p-6">
         <div className="text-center py-12">
