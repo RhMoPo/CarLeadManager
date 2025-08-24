@@ -5,7 +5,7 @@ import {
   type Lead, type InsertLead, type LeadEvent, type InsertLeadEvent,
   type Commission, type InsertCommission, type Expense, type InsertExpense,
   type Setting, type AuditLog, type Invite, type InsertInvite,
-  type MagicToken, type UserRole, type LeadStatus
+  type MagicToken, type UserRole, type LeadStatus, type LeadWithVa
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, sql, gte, like, ilike, count, sum, isNull, gt } from "drizzle-orm";
@@ -28,14 +28,14 @@ export interface IStorage {
   getAllVas(): Promise<Va[]>;
 
   // Leads
-  getLead(id: string): Promise<Lead | undefined>;
-  getLeads(filters?: any): Promise<Lead[]>;
+  getLead(id: string): Promise<LeadWithVa | undefined>;
+  getLeads(filters?: any): Promise<LeadWithVa[]>;
   createLead(lead: InsertLead): Promise<Lead>;
   updateLead(id: string, updates: Partial<Lead>): Promise<Lead>;
   deleteLead(id: string): Promise<void>;
   deleteLeads(ids: string[]): Promise<void>;
   getLeadsByStatus(status: LeadStatus): Promise<Lead[]>;
-  getLeadsByVa(vaId: string): Promise<Lead[]>;
+  getLeadsByVa(vaId: string): Promise<LeadWithVa[]>;
   checkDuplicateLead(lead: InsertLead): Promise<Lead | null>;
 
   // Lead Events
@@ -146,25 +146,84 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Leads
-  async getLead(id: string): Promise<Lead | undefined> {
-    const [lead] = await db.select().from(leads).where(eq(leads.id, id));
-    return lead || undefined;
+  async getLead(id: string): Promise<LeadWithVa | undefined> {
+    const [result] = await db.select({
+      id: leads.id,
+      vaId: leads.vaId,
+      make: leads.make,
+      model: leads.model,
+      year: leads.year,
+      mileage: leads.mileage,
+      askingPrice: leads.askingPrice,
+      estimatedSalePrice: leads.estimatedSalePrice,
+      expensesEstimate: leads.expensesEstimate,
+      estimatedProfit: leads.estimatedProfit,
+      sourceUrl: leads.sourceUrl,
+      normalizedSourceUrl: leads.normalizedSourceUrl,
+      sellerContact: leads.sellerContact,
+      status: leads.status,
+      previewImageUrl: leads.previewImageUrl,
+      createdAt: leads.createdAt,
+      updatedAt: leads.updatedAt,
+      vaName: vas.name
+    }).from(leads)
+      .leftJoin(vas, eq(leads.vaId, vas.id))
+      .where(eq(leads.id, id));
+    
+    if (!result) return undefined;
+    
+    return {
+      ...result,
+      vaName: result.vaName || 'Admin'
+    };
   }
 
-  async getLeads(filters?: any): Promise<Lead[]> {
-    let query = db.select().from(leads);
+  async getLeads(filters?: any): Promise<LeadWithVa[]> {
+    const conditions = [];
     
     if (filters?.status && filters.status !== 'ALL' && filters.status !== '') {
-      query = query.where(eq(leads.status, filters.status));
+      conditions.push(eq(leads.status, filters.status));
     }
     if (filters?.vaId && filters.vaId !== 'ALL' && filters.vaId !== '') {
-      query = query.where(eq(leads.vaId, filters.vaId));
+      conditions.push(eq(leads.vaId, filters.vaId));
     }
     if (filters?.make && filters.make !== '') {
-      query = query.where(ilike(leads.make, `%${filters.make}%`));
+      conditions.push(ilike(leads.make, `%${filters.make}%`));
     }
     
-    return await query.orderBy(desc(leads.createdAt));
+    let query = db.select({
+      id: leads.id,
+      vaId: leads.vaId,
+      make: leads.make,
+      model: leads.model,
+      year: leads.year,
+      mileage: leads.mileage,
+      askingPrice: leads.askingPrice,
+      estimatedSalePrice: leads.estimatedSalePrice,
+      expensesEstimate: leads.expensesEstimate,
+      estimatedProfit: leads.estimatedProfit,
+      sourceUrl: leads.sourceUrl,
+      normalizedSourceUrl: leads.normalizedSourceUrl,
+      sellerContact: leads.sellerContact,
+      status: leads.status,
+      previewImageUrl: leads.previewImageUrl,
+      createdAt: leads.createdAt,
+      updatedAt: leads.updatedAt,
+      vaName: vas.name
+    }).from(leads)
+      .leftJoin(vas, eq(leads.vaId, vas.id));
+    
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
+    }
+    
+    const results = await query.orderBy(desc(leads.createdAt));
+    
+    // Map results to include proper VA name, defaulting to "Admin" for leads without VA
+    return results.map(lead => ({
+      ...lead,
+      vaName: lead.vaName || 'Admin'
+    }));
   }
 
   async createLead(insertLead: InsertLead): Promise<Lead> {
@@ -234,10 +293,35 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(leads.createdAt));
   }
 
-  async getLeadsByVa(vaId: string): Promise<Lead[]> {
-    return await db.select().from(leads)
+  async getLeadsByVa(vaId: string): Promise<LeadWithVa[]> {
+    const results = await db.select({
+      id: leads.id,
+      vaId: leads.vaId,
+      make: leads.make,
+      model: leads.model,
+      year: leads.year,
+      mileage: leads.mileage,
+      askingPrice: leads.askingPrice,
+      estimatedSalePrice: leads.estimatedSalePrice,
+      expensesEstimate: leads.expensesEstimate,
+      estimatedProfit: leads.estimatedProfit,
+      sourceUrl: leads.sourceUrl,
+      normalizedSourceUrl: leads.normalizedSourceUrl,
+      sellerContact: leads.sellerContact,
+      status: leads.status,
+      previewImageUrl: leads.previewImageUrl,
+      createdAt: leads.createdAt,
+      updatedAt: leads.updatedAt,
+      vaName: vas.name
+    }).from(leads)
+      .leftJoin(vas, eq(leads.vaId, vas.id))
       .where(eq(leads.vaId, vaId))
       .orderBy(desc(leads.createdAt));
+    
+    return results.map(lead => ({
+      ...lead,
+      vaName: lead.vaName || 'Admin'
+    }));
   }
 
   async checkDuplicateLead(lead: InsertLead): Promise<Lead | null> {

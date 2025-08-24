@@ -300,3 +300,6 @@ export type MagicToken = typeof magicTokens.$inferSelect;
 
 export type UserRole = "SUPERADMIN" | "VA";
 export type LeadStatus = "PENDING" | "APPROVED" | "CONTACTED" | "BOUGHT" | "SOLD" | "PAID" | "REJECTED";
+
+// Extended types for joined queries
+export type LeadWithVa = Lead & { vaName: string | null };
