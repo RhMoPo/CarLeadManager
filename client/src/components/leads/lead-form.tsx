@@ -151,15 +151,19 @@ export function LeadForm({ onSuccess, submitButtonText = "Create Lead", initialD
               <FormItem>
                 <FormLabel>Asking Price</FormLabel>
                 <FormControl>
-                  <Input
-                    type="number"
-                    value={field.value ?? ''}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      field.onChange(value === '' ? undefined : parseFloat(value));
-                    }}
-                    data-testid="input-asking-price"
-                  />
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">£</span>
+                    <Input
+                      type="number"
+                      className="pl-8"
+                      value={field.value ?? ''}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        field.onChange(value === '' ? undefined : parseFloat(value));
+                      }}
+                      data-testid="input-asking-price"
+                    />
+                  </div>
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -172,15 +176,19 @@ export function LeadForm({ onSuccess, submitButtonText = "Create Lead", initialD
               <FormItem>
                 <FormLabel>Estimated Sale Price</FormLabel>
                 <FormControl>
-                  <Input
-                    type="number"
-                    value={field.value ?? ''}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      field.onChange(value === '' ? undefined : parseFloat(value));
-                    }}
-                    data-testid="input-estimated-sale-price"
-                  />
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">£</span>
+                    <Input
+                      type="number"
+                      className="pl-8"
+                      value={field.value ?? ''}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        field.onChange(value === '' ? undefined : parseFloat(value));
+                      }}
+                      data-testid="input-estimated-sale-price"
+                    />
+                  </div>
                 </FormControl>
                 <FormMessage />
               </FormItem>
