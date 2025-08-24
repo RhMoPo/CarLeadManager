@@ -35,14 +35,14 @@ export function Sidebar() {
     <div 
       className={cn(
         "bg-white shadow-sm border-r border-slate-200 flex flex-col transition-all duration-300",
-        isCollapsed ? "w-16" : "w-64"
+        isCollapsed ? "w-20" : "w-64"
       )} 
       data-testid="sidebar"
     >
       {/* Logo */}
-      <div className={cn("border-b border-slate-200", isCollapsed ? "p-4" : "p-6")}>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
+      <div className={cn("border-b border-slate-200", isCollapsed ? "p-3" : "p-6")}>
+        <div className={cn("flex items-center", isCollapsed ? "flex-col space-y-3" : "justify-between")}>
+          <div className={cn("flex items-center", isCollapsed ? "justify-center" : "space-x-3")}>
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
               <Car className="w-5 h-5 text-white" />
             </div>
@@ -70,7 +70,7 @@ export function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-4 space-y-2">
+      <nav className={cn("flex-1 space-y-2", isCollapsed ? "p-2" : "p-4")}>
         {visibleNavigation.map((item) => {
           const isActive = location === item.href || 
             (item.href === '/leads' && location === '/');
@@ -82,7 +82,7 @@ export function Sidebar() {
               className={cn(
                 "flex items-center text-sm font-medium rounded-md transition-colors relative group",
                 isCollapsed 
-                  ? "justify-center px-3 py-3" 
+                  ? "justify-center p-3 mx-1" 
                   : "space-x-3 px-3 py-2",
                 isActive
                   ? "text-blue-600 bg-blue-50"
@@ -90,12 +90,12 @@ export function Sidebar() {
               )}
               data-testid={`nav-${item.name.toLowerCase().replace(/\s+/g, '-')}`}
             >
-              <item.icon className="w-4 h-4 flex-shrink-0" />
+              <item.icon className="w-5 h-5 flex-shrink-0" />
               {!isCollapsed && <span>{item.name}</span>}
               
               {/* Tooltip for collapsed state */}
               {isCollapsed && (
-                <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
+                <div className="absolute left-full ml-3 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
                   {item.name}
                 </div>
               )}
@@ -105,7 +105,7 @@ export function Sidebar() {
       </nav>
 
       {/* User section */}
-      <div className="p-4 border-t border-slate-200">
+      <div className={cn("border-t border-slate-200", isCollapsed ? "p-2" : "p-4")}>
         {!isCollapsed && (
           <div className="flex items-center space-x-3 mb-3">
             <div className="w-8 h-8 bg-slate-200 rounded-full flex items-center justify-center">
@@ -126,17 +126,17 @@ export function Sidebar() {
           size="sm"
           className={cn(
             isCollapsed 
-              ? "w-8 h-8 p-0 flex justify-center relative group" 
+              ? "w-full h-12 p-0 flex justify-center relative group" 
               : "w-full justify-start"
           )}
           data-testid="button-logout"
         >
-          <LogOut className={cn("w-4 h-4", !isCollapsed && "mr-2")} />
+          <LogOut className={cn("w-5 h-5", !isCollapsed && "mr-2")} />
           {!isCollapsed && "Sign Out"}
           
           {/* Tooltip for collapsed state */}
           {isCollapsed && (
-            <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
+            <div className="absolute left-full ml-3 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
               Sign Out
             </div>
           )}
