@@ -129,8 +129,7 @@ export function LeadForm({ onSuccess, submitButtonText = "Create Lead", initialD
                 <FormControl>
                   <Input
                     type="number"
-                    placeholder="45000"
-                    {...field}
+                    placeholder="e.g., 45000"
                     value={field.value ?? ''}
                     onChange={(e) => {
                       const value = e.target.value;
@@ -156,8 +155,7 @@ export function LeadForm({ onSuccess, submitButtonText = "Create Lead", initialD
                 <FormControl>
                   <Input
                     type="number"
-                    placeholder="15000"
-                    {...field}
+                    placeholder="e.g., 15000"
                     value={field.value ?? ''}
                     onChange={(e) => {
                       const value = e.target.value;
@@ -179,8 +177,7 @@ export function LeadForm({ onSuccess, submitButtonText = "Create Lead", initialD
                 <FormControl>
                   <Input
                     type="number"
-                    placeholder="18000"
-                    {...field}
+                    placeholder="e.g., 18000"
                     value={field.value ?? ''}
                     onChange={(e) => {
                       const value = e.target.value;
