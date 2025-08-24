@@ -297,7 +297,6 @@ export default function LeadsPage() {
                     <TableHead>Est. Sale Price</TableHead>
                     <TableHead>Profit</TableHead>
                     <TableHead>Commission</TableHead>
-                    <TableHead>Source</TableHead>
                     <TableHead>Date</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
@@ -326,9 +325,13 @@ export default function LeadsPage() {
                             )}
                           </div>
                           <div>
-                            <div className="font-medium text-slate-900">
+                            <button 
+                              onClick={() => window.open(lead.sourceUrl, '_blank')}
+                              className="font-medium text-blue-600 hover:text-blue-800 cursor-pointer text-left" 
+                              data-testid={`lead-vehicle-${lead.id}`}
+                            >
                               {lead.year} {lead.make} {lead.model}
-                            </div>
+                            </button>
                             <div className="text-sm text-slate-500">
                               {lead.location} • {lead.mileage.toLocaleString()} mi
                             </div>
@@ -371,17 +374,6 @@ export default function LeadsPage() {
                       <TableCell className="text-blue-600 font-medium">
                         {formatCurrency(calculateCommission(lead.estimatedProfit).toString())}
                       </TableCell>
-                      <TableCell>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => window.open(lead.sourceUrl, '_blank')}
-                          className="text-blue-600 hover:text-blue-800"
-                          data-testid={`button-source-${lead.id}`}
-                        >
-                          <ExternalLink className="w-4 h-4" />
-                        </Button>
-                      </TableCell>
                       <TableCell className="text-slate-500 text-sm">
                         {formatDate(lead.createdAt)}
                       </TableCell>
@@ -413,7 +405,7 @@ export default function LeadsPage() {
                   ))}
                   {(!leads || leads.length === 0) && (
                     <TableRow>
-                      <TableCell colSpan={11} className="text-center py-8 text-slate-500">
+                      <TableCell colSpan={10} className="text-center py-8 text-slate-500">
                         No leads found matching your filters
                       </TableCell>
                     </TableRow>
