@@ -2,6 +2,7 @@ import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useState } from "react";
 import {
   Car,
   Users,
@@ -9,6 +10,7 @@ import {
   LogOut,
   User,
   GraduationCap,
+  Menu,
 } from "lucide-react";
 
 const navigation = [
@@ -21,6 +23,7 @@ const navigation = [
 export function Sidebar() {
   const [location] = useLocation();
   const { user, logout } = useAuth();
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   if (!user) return null;
 
@@ -29,20 +32,41 @@ export function Sidebar() {
   );
 
   return (
-    <div className="w-64 bg-white shadow-sm border-r border-slate-200 flex flex-col" data-testid="sidebar">
+    <div 
+      className={cn(
+        "bg-white shadow-sm border-r border-slate-200 flex flex-col transition-all duration-300",
+        isCollapsed ? "w-16" : "w-64"
+      )} 
+      data-testid="sidebar"
+    >
       {/* Logo */}
-      <div className="p-6 border-b border-slate-200">
-        <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-            <Car className="w-5 h-5 text-white" />
+      <div className={cn("border-b border-slate-200", isCollapsed ? "p-4" : "p-6")}>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+              <Car className="w-5 h-5 text-white" />
+            </div>
+            {!isCollapsed && (
+              <h1 className="text-lg font-semibold text-slate-900">Lead Manager</h1>
+            )}
           </div>
-          <h1 className="text-lg font-semibold text-slate-900">Lead Manager</h1>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            className="w-8 h-8 p-0 flex-shrink-0"
+            data-testid="button-toggle-sidebar"
+          >
+            <Menu className="w-4 h-4" />
+          </Button>
         </div>
-        <div className="mt-3 text-xs text-slate-500" data-testid="user-role">
-          {user.role === 'SUPERADMIN' ? 'Super Admin' : 
-           user.role === 'MANAGER' ? 'Manager Dashboard' : 
-           'VA Dashboard'}
-        </div>
+        {!isCollapsed && (
+          <div className="mt-3 text-xs text-slate-500" data-testid="user-role">
+            {user.role === 'SUPERADMIN' ? 'Super Admin' : 
+             user.role === 'MANAGER' ? 'Manager Dashboard' : 
+             'VA Dashboard'}
+          </div>
+        )}
       </div>
 
       {/* Navigation */}
@@ -56,15 +80,25 @@ export function Sidebar() {
               key={item.name} 
               href={item.href}
               className={cn(
-                "flex items-center space-x-3 px-3 py-2 text-sm font-medium rounded-md transition-colors",
+                "flex items-center text-sm font-medium rounded-md transition-colors relative group",
+                isCollapsed 
+                  ? "justify-center px-3 py-3" 
+                  : "space-x-3 px-3 py-2",
                 isActive
                   ? "text-blue-600 bg-blue-50"
                   : "text-slate-700 hover:text-slate-900 hover:bg-slate-100"
               )}
               data-testid={`nav-${item.name.toLowerCase().replace(/\s+/g, '-')}`}
             >
-              <item.icon className="w-4 h-4" />
-              <span>{item.name}</span>
+              <item.icon className="w-4 h-4 flex-shrink-0" />
+              {!isCollapsed && <span>{item.name}</span>}
+              
+              {/* Tooltip for collapsed state */}
+              {isCollapsed && (
+                <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
+                  {item.name}
+                </div>
+              )}
             </Link>
           );
         })}
@@ -72,26 +106,40 @@ export function Sidebar() {
 
       {/* User section */}
       <div className="p-4 border-t border-slate-200">
-        <div className="flex items-center space-x-3 mb-3">
-          <div className="w-8 h-8 bg-slate-200 rounded-full flex items-center justify-center">
-            <User className="w-4 h-4 text-slate-600" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="text-sm font-medium text-slate-900 truncate" data-testid="user-email">
-              {user.email}
+        {!isCollapsed && (
+          <div className="flex items-center space-x-3 mb-3">
+            <div className="w-8 h-8 bg-slate-200 rounded-full flex items-center justify-center">
+              <User className="w-4 h-4 text-slate-600" />
             </div>
-            <div className="text-xs text-slate-500">{user.role}</div>
+            <div className="flex-1 min-w-0">
+              <div className="text-sm font-medium text-slate-900 truncate" data-testid="user-email">
+                {user.email}
+              </div>
+              <div className="text-xs text-slate-500">{user.role}</div>
+            </div>
           </div>
-        </div>
+        )}
+        
         <Button
           onClick={() => logout()}
           variant="ghost"
           size="sm"
-          className="w-full justify-start"
+          className={cn(
+            isCollapsed 
+              ? "w-8 h-8 p-0 flex justify-center relative group" 
+              : "w-full justify-start"
+          )}
           data-testid="button-logout"
         >
-          <LogOut className="w-4 h-4 mr-2" />
-          Sign Out
+          <LogOut className={cn("w-4 h-4", !isCollapsed && "mr-2")} />
+          {!isCollapsed && "Sign Out"}
+          
+          {/* Tooltip for collapsed state */}
+          {isCollapsed && (
+            <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
+              Sign Out
+            </div>
+          )}
         </Button>
       </div>
     </div>
