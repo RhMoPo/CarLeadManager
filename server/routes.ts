@@ -12,7 +12,6 @@ import session from "express-session";
 import { randomBytes } from "crypto";
 import { logger } from "./utils/logger";
 import ConnectPgSimple from "connect-pg-simple";
-import { sendVAWelcomeEmail } from "./email";
 import { pool } from "./db";
 
 const PgSession = ConnectPgSimple(session);
