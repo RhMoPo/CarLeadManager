@@ -580,26 +580,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const va = await storage.createVa(vaData);
 
-      // Send welcome email with login credentials
-      try {
-        const loginUrl = `${req.protocol}://${req.get('host')}/login`;
-        await sendVAWelcomeEmail({
-          name,
-          email,
-          password,
-          loginUrl
-        });
-      } catch (emailError) {
-        console.error('Failed to send welcome email:', emailError);
-        // Don't fail the account creation if email fails
-      }
-
       await storage.createAuditLog({
         userId: req.session.userId!,
         action: 'CREATE_VA_ACCOUNT',
         resourceType: 'user',
         resourceId: user.id,
-        details: `Created VA account for ${name} (${email}) and sent welcome email`,
+        details: `Created VA account for ${name} (${email})`,
         ipAddress: req.ip || null,
         userAgent: req.get('User-Agent') || null,
       });
@@ -614,7 +600,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           id: va.id,
           name: va.name
         },
-        message: 'VA account created successfully. Welcome email sent to ' + email
+        password // Return the plain password for manual sharing
       });
     } catch (error) {
       next(error);
