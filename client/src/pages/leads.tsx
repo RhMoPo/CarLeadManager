@@ -18,7 +18,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { LeadForm } from "@/components/leads/lead-form";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Plus, Eye, Edit, Car, Trash2 } from "lucide-react";
 import { Link } from "wouter";
 import { formatCurrency, formatDate } from "@/lib/utils";
@@ -43,6 +43,13 @@ export default function LeadsPage() {
   });
   const [selectedLeads, setSelectedLeads] = useState<string[]>([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{
+    show: boolean;
+    type: 'single' | 'bulk';
+    leadId?: string;
+    leadName?: string;
+    count?: number;
+  }>({ show: false, type: 'single' });
 
   const { data: leads, isLoading } = useLeads(filters);
   const updateLeadStatusMutation = useUpdateLeadStatus();
@@ -84,21 +91,39 @@ export default function LeadsPage() {
     updateLeadStatusMutation.mutate({ id: leadId, status: newStatus });
   };
 
-  const handleDeleteLead = (leadId: string) => {
-    if (confirm('Are you sure you want to delete this lead? This action cannot be undone.')) {
-      deleteLeadMutation.mutate(leadId);
-      setSelectedLeads(prev => prev.filter(id => id !== leadId));
-    }
+  const handleDeleteLead = (leadId: string, leadName: string) => {
+    setDeleteConfirmation({
+      show: true,
+      type: 'single',
+      leadId,
+      leadName
+    });
   };
 
   const handleBulkDelete = () => {
     if (selectedLeads.length === 0) return;
     
-    const confirmMessage = `Are you sure you want to delete ${selectedLeads.length} selected lead${selectedLeads.length > 1 ? 's' : ''}? This action cannot be undone.`;
-    if (confirm(confirmMessage)) {
+    setDeleteConfirmation({
+      show: true,
+      type: 'bulk',
+      count: selectedLeads.length
+    });
+  };
+
+  const confirmDelete = () => {
+    if (deleteConfirmation.type === 'single' && deleteConfirmation.leadId) {
+      deleteLeadMutation.mutate(deleteConfirmation.leadId);
+      setSelectedLeads(prev => prev.filter(id => id !== deleteConfirmation.leadId));
+    } else if (deleteConfirmation.type === 'bulk') {
       deleteLeadsMutation.mutate(selectedLeads);
       setSelectedLeads([]);
     }
+    
+    setDeleteConfirmation({ show: false, type: 'single' });
+  };
+
+  const cancelDelete = () => {
+    setDeleteConfirmation({ show: false, type: 'single' });
   };
 
   return (
@@ -343,7 +368,7 @@ export default function LeadsPage() {
                             <Button 
                               size="sm" 
                               variant="ghost" 
-                              onClick={() => handleDeleteLead(lead.id)}
+                              onClick={() => handleDeleteLead(lead.id, `${lead.year} ${lead.make} ${lead.model}`)}
                               disabled={deleteLeadMutation.isPending}
                               className="text-red-600 hover:text-red-700 hover:bg-red-50"
                               data-testid={`button-delete-${lead.id}`}
@@ -368,6 +393,44 @@ export default function LeadsPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Delete Confirmation Modal */}
+      <Dialog open={deleteConfirmation.show} onOpenChange={cancelDelete}>
+        <DialogContent data-testid="delete-confirmation-modal">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Trash2 className="w-5 h-5 text-red-600" />
+              Confirm Deletion
+            </DialogTitle>
+            <DialogDescription>
+              {deleteConfirmation.type === 'single' 
+                ? `Are you sure you want to delete the lead "${deleteConfirmation.leadName}"?`
+                : `Are you sure you want to delete ${deleteConfirmation.count} selected lead${deleteConfirmation.count !== 1 ? 's' : ''}?`
+              }
+              <br />
+              <span className="text-red-600 font-medium">This action cannot be undone.</span>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={cancelDelete}
+              data-testid="button-cancel-delete"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={confirmDelete}
+              disabled={deleteLeadMutation.isPending || deleteLeadsMutation.isPending}
+              data-testid="button-confirm-delete"
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              {(deleteLeadMutation.isPending || deleteLeadsMutation.isPending) ? 'Deleting...' : 'Delete'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
