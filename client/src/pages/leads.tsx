@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useLeads, useUpdateLeadStatus, useDeleteLead, useDeleteLeads } from "@/hooks/use-leads";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -52,9 +53,30 @@ export default function LeadsPage() {
   }>({ show: false, type: 'single' });
 
   const { data: leads, isLoading } = useLeads(filters);
+  const { data: settings } = useQuery({
+    queryKey: ['/api/settings'],
+    enabled: user?.role === 'SUPERADMIN',
+  });
   const updateLeadStatusMutation = useUpdateLeadStatus();
   const deleteLeadMutation = useDeleteLead();
   const deleteLeadsMutation = useDeleteLeads();
+
+  // Calculate commission for a lead
+  const calculateCommission = (estimatedProfit: string) => {
+    const commissionRate = parseFloat(settings?.commissionPercent || '10') / 100;
+    const profit = parseFloat(estimatedProfit || '0');
+    return profit * commissionRate;
+  };
+
+  // Calculate totals
+  const totals = leads?.reduce((acc: { totalProfit: number; totalCommission: number }, lead: Lead) => {
+    const profit = parseFloat(lead.estimatedProfit || '0');
+    const commission = calculateCommission(lead.estimatedProfit);
+    return {
+      totalProfit: acc.totalProfit + profit,
+      totalCommission: acc.totalCommission + commission,
+    };
+  }, { totalProfit: 0, totalCommission: 0 }) || { totalProfit: 0, totalCommission: 0 };
 
   if (!user) {
     return (
@@ -273,6 +295,7 @@ export default function LeadsPage() {
                     <TableHead>Status</TableHead>
                     <TableHead>Asking Price</TableHead>
                     <TableHead>Est. Profit</TableHead>
+                    <TableHead>Est. Commission</TableHead>
                     <TableHead>Source</TableHead>
                     <TableHead>Date</TableHead>
                     <TableHead>Actions</TableHead>
@@ -341,6 +364,9 @@ export default function LeadsPage() {
                       <TableCell className="text-emerald-600 font-medium">
                         {formatCurrency(lead.estimatedProfit)}
                       </TableCell>
+                      <TableCell className="text-blue-600 font-medium">
+                        {formatCurrency(calculateCommission(lead.estimatedProfit).toString())}
+                      </TableCell>
                       <TableCell>
                         <a 
                           href={lead.sourceUrl} 
@@ -382,7 +408,7 @@ export default function LeadsPage() {
                   ))}
                   {(!leads || leads.length === 0) && (
                     <TableRow>
-                      <TableCell colSpan={9} className="text-center py-8 text-slate-500">
+                      <TableCell colSpan={10} className="text-center py-8 text-slate-500">
                         No leads found matching your filters
                       </TableCell>
                     </TableRow>
@@ -393,6 +419,39 @@ export default function LeadsPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Floating Totals Bar */}
+      {leads && leads.length > 0 && (
+        <div className="fixed bottom-0 left-64 right-0 bg-white border-t border-slate-200 shadow-lg p-4 z-10">
+          <div className="flex items-center justify-between max-w-7xl mx-auto">
+            <div className="flex items-center space-x-8">
+              <div className="text-sm text-slate-600">
+                {leads.length} lead{leads.length !== 1 ? 's' : ''} displayed
+              </div>
+              <div className="flex items-center space-x-6">
+                <div className="text-center">
+                  <div className="text-xs text-slate-500 mb-1">Total Est. Profit</div>
+                  <div className="text-lg font-semibold text-emerald-600" data-testid="total-profit">
+                    {formatCurrency(totals.totalProfit.toString())}
+                  </div>
+                </div>
+                <div className="text-center">
+                  <div className="text-xs text-slate-500 mb-1">Total Est. Commission</div>
+                  <div className="text-lg font-semibold text-blue-600" data-testid="total-commission">
+                    {formatCurrency(totals.totalCommission.toString())}
+                  </div>
+                </div>
+                <div className="text-center">
+                  <div className="text-xs text-slate-500 mb-1">Commission Rate</div>
+                  <div className="text-sm font-medium text-slate-900">
+                    {settings?.commissionPercent || '10'}%
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Delete Confirmation Modal */}
       <Dialog open={deleteConfirmation.show} onOpenChange={cancelDelete}>
@@ -431,6 +490,10 @@ export default function LeadsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      {/* Bottom padding to prevent content from being hidden behind floating bar */}
+      {leads && leads.length > 0 && (
+        <div className="h-20"></div>
+      )}
     </div>
   );
 }
