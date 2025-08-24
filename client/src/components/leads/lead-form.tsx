@@ -9,6 +9,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FormField, FormItem, FormLabel, FormControl, FormMessage, Form } from "@/components/ui/form";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import { Link, Loader2 } from "lucide-react";
 
 const leadSchema = z.object({
   make: z.string().min(1, "Make is required"),
@@ -32,6 +36,46 @@ interface LeadFormProps {
 export function LeadForm({ onSuccess, submitButtonText = "Create Lead", initialData }: LeadFormProps) {
   const { user } = useAuth();
   const createLeadMutation = useCreateLead();
+  const { toast } = useToast();
+
+  // URL preview mutation
+  const urlPreviewMutation = useMutation({
+    mutationFn: async (url: string) => {
+      const res = await apiRequest("POST", "/api/url-preview", { url });
+      return res.json();
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to fetch URL preview",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Handle URL preview data
+  const handleUrlPreview = (previewData: any) => {
+    if (previewData.make && !form.getValues('make')) {
+      form.setValue('make', previewData.make);
+    }
+    if (previewData.model && !form.getValues('model')) {
+      form.setValue('model', previewData.model);
+    }
+    if (previewData.year && !form.getValues('year')) {
+      form.setValue('year', previewData.year);
+    }
+    if (previewData.price && !form.getValues('askingPrice')) {
+      const price = parseInt(previewData.price.replace(/,/g, ''));
+      if (!isNaN(price)) {
+        form.setValue('askingPrice', price);
+      }
+    }
+
+    toast({
+      title: "URL preview loaded",
+      description: "Form fields have been auto-populated with extracted data.",
+    });
+  };
 
   const form = useForm<LeadFormData>({
     resolver: zodResolver(leadSchema),
@@ -218,13 +262,49 @@ export function LeadForm({ onSuccess, submitButtonText = "Create Lead", initialD
             <FormItem>
               <FormLabel>Source URL</FormLabel>
               <FormControl>
-                <Input
-                  type="url"
-                  {...field}
-                  data-testid="input-source-url"
-                />
+                <div className="relative">
+                  <Input 
+                    {...field} 
+                    type="url" 
+                    data-testid="input-source-url"
+                    onBlur={() => {
+                      const url = field.value;
+                      if (url && url.trim() && (url.includes('facebook.com/marketplace') || url.includes('autotrader') || url.includes('cars.co.uk'))) {
+                        urlPreviewMutation.mutate(url, {
+                          onSuccess: handleUrlPreview,
+                        });
+                      }
+                    }}
+                  />
+                  {urlPreviewMutation.isPending && (
+                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                      <Loader2 className="h-4 w-4 animate-spin text-gray-500" />
+                    </div>
+                  )}
+                  {!urlPreviewMutation.isPending && field.value && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-1 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0"
+                      onClick={() => {
+                        if (field.value) {
+                          urlPreviewMutation.mutate(field.value, {
+                            onSuccess: handleUrlPreview,
+                          });
+                        }
+                      }}
+                      data-testid="button-fetch-preview"
+                    >
+                      <Link className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
               </FormControl>
               <FormMessage />
+              {urlPreviewMutation.isPending && (
+                <p className="text-sm text-gray-500 mt-1">Fetching URL preview...</p>
+              )}
             </FormItem>
           )}
         />

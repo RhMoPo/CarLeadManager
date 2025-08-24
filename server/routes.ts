@@ -13,6 +13,8 @@ import { randomBytes } from "crypto";
 import { logger } from "./utils/logger";
 import ConnectPgSimple from "connect-pg-simple";
 import { pool } from "./db";
+import fetch from 'node-fetch';
+import * as cheerio from 'cheerio';
 
 const PgSession = ConnectPgSimple(session);
 
@@ -172,7 +174,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         token,
         expiresAt,
         createdBy: req.session.userId!,
-      });
+      } as any);
 
       await storage.createAuditLog({
         userId: req.session.userId!,
@@ -254,6 +256,124 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ user: { id: user.id, email: user.email, role: user.role } });
     } catch (error) {
       next(error);
+    }
+  });
+
+  // URL preview route
+  app.post('/api/url-preview', requireAuth, async (req, res, next) => {
+    try {
+      const { url } = req.body;
+      
+      if (!url || !url.trim()) {
+        return res.status(400).json({ message: 'URL is required' });
+      }
+
+      // Validate URL format
+      try {
+        new URL(url);
+      } catch {
+        return res.status(400).json({ message: 'Invalid URL format' });
+      }
+
+      // Fetch the page content
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+      
+      const response = await fetch(url, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+          'Accept-Language': 'en-US,en;q=0.5',
+          'Accept-Encoding': 'gzip, deflate',
+          'Connection': 'keep-alive',
+          'Upgrade-Insecure-Requests': '1',
+        },
+        signal: controller.signal,
+      });
+      
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const html = await response.text();
+      const $ = cheerio.load(html);
+
+      // Extract metadata
+      const title = 
+        $('meta[property="og:title"]').attr('content') ||
+        $('meta[name="twitter:title"]').attr('content') ||
+        $('title').text() ||
+        '';
+
+      const description = 
+        $('meta[property="og:description"]').attr('content') ||
+        $('meta[name="twitter:description"]').attr('content') ||
+        $('meta[name="description"]').attr('content') ||
+        '';
+
+      const image = 
+        $('meta[property="og:image"]').attr('content') ||
+        $('meta[name="twitter:image"]').attr('content') ||
+        '';
+
+      // For Facebook Marketplace, try to extract specific data
+      let extractedData: any = {
+        title: title.trim(),
+        description: description.trim(),
+        image: image.trim(),
+        make: '',
+        model: '',
+        year: null,
+        price: ''
+      };
+
+      // Try to extract car details from Facebook Marketplace
+      if (url.includes('facebook.com/marketplace')) {
+        // Extract price from title or specific elements
+        const priceMatch = title.match(/£?([\d,]+)/);
+        if (priceMatch) {
+          extractedData.price = priceMatch[1].replace(/,/g, '');
+        }
+
+        // Try to extract make, model, year from title
+        const titleWords = title.toLowerCase().split(/[\s\-,·•]/);
+        const currentYear = new Date().getFullYear();
+        
+        // Look for year (4-digit number between 1950 and current year + 1)
+        for (const word of titleWords) {
+          const yearMatch = word.match(/(\d{4})/);
+          if (yearMatch) {
+            const year = parseInt(yearMatch[1]);
+            if (year >= 1950 && year <= currentYear + 1) {
+              extractedData.year = year;
+              break;
+            }
+          }
+        }
+
+        // Common car makes to look for
+        const carMakes = ['audi', 'bmw', 'mercedes', 'volkswagen', 'vw', 'ford', 'vauxhall', 
+                         'peugeot', 'renault', 'citroen', 'nissan', 'toyota', 'honda', 
+                         'mazda', 'hyundai', 'kia', 'skoda', 'seat', 'mini', 'fiat', 
+                         'alfa', 'volvo', 'saab', 'jaguar', 'land rover', 'range rover'];
+
+        for (const make of carMakes) {
+          if (title.toLowerCase().includes(make)) {
+            extractedData.make = make.charAt(0).toUpperCase() + make.slice(1);
+            break;
+          }
+        }
+      }
+
+      res.json(extractedData);
+    } catch (error: any) {
+      logger.error('URL preview error:', error);
+      res.status(500).json({ 
+        message: 'Failed to fetch URL preview',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
     }
   });
 
