@@ -79,7 +79,15 @@ export function LeadForm({ onSuccess, submitButtonText = "Create Lead", initialD
               <FormItem>
                 <FormLabel>Make</FormLabel>
                 <FormControl>
-                  <Input {...field} data-testid="input-make" />
+                  <Input 
+                    {...field} 
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      const capitalized = value.charAt(0).toUpperCase() + value.slice(1);
+                      field.onChange(capitalized);
+                    }}
+                    data-testid="input-make" 
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -92,7 +100,15 @@ export function LeadForm({ onSuccess, submitButtonText = "Create Lead", initialD
               <FormItem>
                 <FormLabel>Model</FormLabel>
                 <FormControl>
-                  <Input {...field} data-testid="input-model" />
+                  <Input 
+                    {...field} 
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      const capitalized = value.charAt(0).toUpperCase() + value.slice(1);
+                      field.onChange(capitalized);
+                    }}
+                    data-testid="input-model" 
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
