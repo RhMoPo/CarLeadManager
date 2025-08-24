@@ -55,7 +55,6 @@ export function LeadForm({ onSuccess, submitButtonText = "Create Lead", initialD
       askingPrice: (data.askingPrice || 0).toString(),
       estimatedSalePrice: (data.estimatedSalePrice || 0).toString(),
       expensesEstimate: "0", // Default to 0
-      vin: null, // Use null instead of empty string to avoid unique constraint issues
       sellerContact: "TBD", // Default placeholder
       location: "TBD", // Default placeholder
     };

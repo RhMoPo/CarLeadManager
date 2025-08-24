@@ -185,12 +185,6 @@ export default function LeadDetailPage() {
                     {lead.mileage.toLocaleString()} miles
                   </p>
                 </div>
-                {lead.vin && (
-                  <div className="md:col-span-2">
-                    <label className="text-sm font-medium text-slate-600">VIN</label>
-                    <p className="text-slate-900 font-mono" data-testid="lead-vin">{lead.vin}</p>
-                  </div>
-                )}
               </div>
               
               <Separator />

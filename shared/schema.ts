@@ -56,7 +56,6 @@ export const leads = pgTable("leads", {
   model: text("model").notNull(),
   year: integer("year").notNull(),
   mileage: integer("mileage").notNull(),
-  vin: text("vin"),
   askingPrice: decimal("asking_price", { precision: 10, scale: 2 }).notNull(),
   estimatedSalePrice: decimal("estimated_sale_price", { precision: 10, scale: 2 }).notNull(),
   expensesEstimate: decimal("expenses_estimate", { precision: 10, scale: 2 }).notNull(),
@@ -71,7 +70,6 @@ export const leads = pgTable("leads", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 }, (table) => ({
   normalizedSourceUrlUnique: unique("normalized_source_url_unique").on(table.normalizedSourceUrl),
-  vinUnique: unique("vin_unique").on(table.vin),
 }));
 
 // Lead events table

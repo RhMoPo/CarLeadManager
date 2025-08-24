@@ -249,12 +249,6 @@ export class DatabaseStorage implements IStorage {
       if (existingLead) return existingLead;
     }
 
-    // Check for VIN match
-    if (lead.vin) {
-      const [existingLead] = await db.select().from(leads)
-        .where(eq(leads.vin, lead.vin));
-      if (existingLead) return existingLead;
-    }
 
     // Fuzzy matching: same make, model, location and asking price within 5%
     const priceVariance = parseFloat(lead.askingPrice.toString()) * 0.05;
