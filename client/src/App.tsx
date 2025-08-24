@@ -8,11 +8,9 @@ import { useAuth } from "@/hooks/use-auth";
 
 // Pages
 import LoginPage from "@/pages/login";
-import DashboardPage from "@/pages/dashboard";
 import LeadsPage from "@/pages/leads";
 import LeadDetailPage from "@/pages/lead-detail";
 import SubmitLeadPage from "@/pages/submit-lead";
-import ReportsPage from "@/pages/reports";
 import UserManagementPage from "@/pages/user-management";
 import SettingsPage from "@/pages/settings";
 import NotFound from "@/pages/not-found";
@@ -56,15 +54,13 @@ function Router() {
   return (
     <AuthenticatedLayout>
       <Switch>
-        <Route path="/" component={DashboardPage} />
-        <Route path="/dashboard" component={DashboardPage} />
+        <Route path="/" component={SubmitLeadPage} />
         <Route path="/submit" component={SubmitLeadPage} />
         <Route path="/lead/:id" component={LeadDetailPage} />
         
         {!isVA && (
           <>
             <Route path="/leads" component={LeadsPage} />
-            <Route path="/reports" component={ReportsPage} />
             <Route path="/settings" component={SettingsPage} />
           </>
         )}

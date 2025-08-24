@@ -465,23 +465,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // KPI/Reports routes
-  app.get('/api/kpis', requireAuth, requireRole(['MANAGER', 'SUPERADMIN']), async (req, res, next) => {
-    try {
-      const kpis = await storage.getKPIs();
-      const vaLeaderboard = await storage.getVALeaderboard();
-      const profitByWeek = await storage.getProfitByWeek();
-
-      res.json({
-        kpis,
-        vaLeaderboard,
-        profitByWeek,
-      });
-    } catch (error) {
-      next(error);
-    }
-  });
-
   // User management routes
   app.get('/api/users', requireAuth, requireRole(['SUPERADMIN']), async (req, res, next) => {
     try {

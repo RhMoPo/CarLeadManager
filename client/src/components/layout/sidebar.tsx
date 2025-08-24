@@ -3,9 +3,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
-  LayoutDashboard,
   Car,
-  BarChart3,
   Users,
   Settings,
   LogOut,
@@ -13,10 +11,8 @@ import {
 } from "lucide-react";
 
 const navigation = [
-  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard, roles: ["SUPERADMIN", "MANAGER", "VA"] },
+  { name: "Submit Lead", href: "/submit", icon: Car, roles: ["SUPERADMIN", "MANAGER", "VA"] },
   { name: "All Leads", href: "/leads", icon: Car, roles: ["SUPERADMIN", "MANAGER"] },
-  { name: "Submit Lead", href: "/submit", icon: Car, roles: ["VA"] },
-  { name: "Reports", href: "/reports", icon: BarChart3, roles: ["SUPERADMIN", "MANAGER"] },
   { name: "User Management", href: "/user-management", icon: Users, roles: ["SUPERADMIN"] },
   { name: "Settings", href: "/settings", icon: Settings, roles: ["SUPERADMIN", "MANAGER"] },
 ];
@@ -52,7 +48,7 @@ export function Sidebar() {
       <nav className="flex-1 p-4 space-y-2">
         {visibleNavigation.map((item) => {
           const isActive = location === item.href || 
-            (item.href === '/dashboard' && location === '/');
+            (item.href === '/submit' && location === '/');
           
           return (
             <Link key={item.name} href={item.href}>

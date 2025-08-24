@@ -70,11 +70,6 @@ export interface IStorage {
   createMagicToken(token: { token: string; userId: string; expiresAt: Date }): Promise<MagicToken>;
   getMagicToken(token: string): Promise<MagicToken | undefined>;
   markMagicTokenUsed(token: string): Promise<void>;
-
-  // Analytics
-  getKPIs(): Promise<any>;
-  getVALeaderboard(): Promise<any[]>;
-  getProfitByWeek(): Promise<any[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -409,55 +404,6 @@ export class DatabaseStorage implements IStorage {
       .where(eq(magicTokens.token, token));
   }
 
-  // Analytics
-  async getKPIs(): Promise<any> {
-    const totalLeads = await db.select({ count: count() }).from(leads);
-    const approvedLeads = await db.select({ count: count() }).from(leads)
-      .where(eq(leads.status, 'APPROVED'));
-    const dueCommissions = await db.select({ 
-      total: sum(commissions.amount) 
-    }).from(commissions).where(and(
-      eq(commissions.isDue, true), 
-      eq(commissions.isPaid, false)
-    ));
-    const activeVAs = await db.select({ count: count() }).from(vas)
-      .innerJoin(users, eq(vas.userId, users.id))
-      .where(eq(users.isActive, true));
-
-    return {
-      totalLeads: totalLeads[0]?.count || 0,
-      approvedLeads: approvedLeads[0]?.count || 0,
-      commissionDue: dueCommissions[0]?.total || '0',
-      activeVAs: activeVAs[0]?.count || 0,
-    };
-  }
-
-  async getVALeaderboard(): Promise<any[]> {
-    const leaderboard = await db.select({
-      vaId: vas.id,
-      vaName: vas.name,
-      approvedLeads: count(leads.id),
-      totalProfit: sum(leads.estimatedProfit),
-    }).from(vas)
-      .leftJoin(leads, and(eq(vas.id, leads.vaId), eq(leads.status, 'APPROVED')))
-      .groupBy(vas.id, vas.name)
-      .orderBy(desc(sum(leads.estimatedProfit)));
-
-    return leaderboard;
-  }
-
-  async getProfitByWeek(): Promise<any[]> {
-    // Implementation for weekly profit aggregation
-    const weeklyProfit = await db.select({
-      week: sql`date_trunc('week', ${leads.createdAt})`.as('week'),
-      profit: sum(leads.estimatedProfit),
-    }).from(leads)
-      .where(eq(leads.status, 'SOLD'))
-      .groupBy(sql`date_trunc('week', ${leads.createdAt})`)
-      .orderBy(sql`date_trunc('week', ${leads.createdAt})`);
-
-    return weeklyProfit;
-  }
 }
 
 export const storage = new DatabaseStorage();
