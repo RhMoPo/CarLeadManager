@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
-import { useLeads, useUpdateLeadStatus } from "@/hooks/use-leads";
+import { useLeads, useUpdateLeadStatus, useDeleteLead, useDeleteLeads } from "@/hooks/use-leads";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/table";
 import { LeadForm } from "@/components/leads/lead-form";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, Eye, Edit, Car } from "lucide-react";
+import { Plus, Eye, Edit, Car, Trash2 } from "lucide-react";
 import { Link } from "wouter";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { type Lead } from "@/lib/types";
@@ -46,6 +46,8 @@ export default function LeadsPage() {
 
   const { data: leads, isLoading } = useLeads(filters);
   const updateLeadStatusMutation = useUpdateLeadStatus();
+  const deleteLeadMutation = useDeleteLead();
+  const deleteLeadsMutation = useDeleteLeads();
 
   if (!user) {
     return (
@@ -82,6 +84,23 @@ export default function LeadsPage() {
     updateLeadStatusMutation.mutate({ id: leadId, status: newStatus });
   };
 
+  const handleDeleteLead = (leadId: string) => {
+    if (confirm('Are you sure you want to delete this lead? This action cannot be undone.')) {
+      deleteLeadMutation.mutate(leadId);
+      setSelectedLeads(prev => prev.filter(id => id !== leadId));
+    }
+  };
+
+  const handleBulkDelete = () => {
+    if (selectedLeads.length === 0) return;
+    
+    const confirmMessage = `Are you sure you want to delete ${selectedLeads.length} selected lead${selectedLeads.length > 1 ? 's' : ''}? This action cannot be undone.`;
+    if (confirm(confirmMessage)) {
+      deleteLeadsMutation.mutate(selectedLeads);
+      setSelectedLeads([]);
+    }
+  };
+
   return (
     <div className="flex-1 p-6" data-testid="leads-page">
       <div className="mb-6">
@@ -106,6 +125,41 @@ export default function LeadsPage() {
           </Dialog>
         </div>
       </div>
+
+      {/* Bulk Actions */}
+      {selectedLeads.length > 0 && user?.role === 'SUPERADMIN' && (
+        <Card className="mb-6 bg-blue-50 border-blue-200">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <span className="text-sm font-medium text-blue-900">
+                  {selectedLeads.length} lead{selectedLeads.length > 1 ? 's' : ''} selected
+                </span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setSelectedLeads([])}
+                  data-testid="button-clear-selection"
+                >
+                  Clear Selection
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleBulkDelete}
+                  disabled={deleteLeadsMutation.isPending}
+                  data-testid="button-bulk-delete"
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  {deleteLeadsMutation.isPending ? 'Deleting...' : 'Delete Selected'}
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Filters */}
       <Card className="mb-6">
@@ -276,7 +330,7 @@ export default function LeadsPage() {
                         {formatDate(lead.createdAt)}
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center space-x-2">
+                        <div className="flex items-center space-x-1">
                           <Link href={`/lead/${lead.id}`}>
                             <Button size="sm" variant="ghost" data-testid={`button-view-${lead.id}`}>
                               <Eye className="w-4 h-4" />
@@ -285,6 +339,18 @@ export default function LeadsPage() {
                           <Button size="sm" variant="ghost" data-testid={`button-edit-${lead.id}`}>
                             <Edit className="w-4 h-4" />
                           </Button>
+                          {user?.role === 'SUPERADMIN' && (
+                            <Button 
+                              size="sm" 
+                              variant="ghost" 
+                              onClick={() => handleDeleteLead(lead.id)}
+                              disabled={deleteLeadMutation.isPending}
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                              data-testid={`button-delete-${lead.id}`}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          )}
                         </div>
                       </TableCell>
                     </TableRow>

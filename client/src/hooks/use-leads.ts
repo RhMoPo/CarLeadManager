@@ -114,3 +114,53 @@ export function useLeadEvents(leadId: string) {
     enabled: !!leadId,
   });
 }
+
+export function useDeleteLead() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const res = await apiRequest("DELETE", `/api/leads/${id}`);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/leads"] });
+      toast({
+        title: "Lead deleted",
+        description: "Lead has been deleted successfully",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to delete lead",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+}
+
+export function useDeleteLeads() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (ids: string[]) => {
+      const res = await apiRequest("DELETE", "/api/leads", { ids });
+      return res.json();
+    },
+    onSuccess: (data, ids) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/leads"] });
+      toast({
+        title: "Leads deleted",
+        description: `Successfully deleted ${ids.length} leads`,
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to delete leads",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+}

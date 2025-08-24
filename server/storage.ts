@@ -32,6 +32,8 @@ export interface IStorage {
   getLeads(filters?: any): Promise<Lead[]>;
   createLead(lead: InsertLead): Promise<Lead>;
   updateLead(id: string, updates: Partial<Lead>): Promise<Lead>;
+  deleteLead(id: string): Promise<void>;
+  deleteLeads(ids: string[]): Promise<void>;
   getLeadsByStatus(status: LeadStatus): Promise<Lead[]>;
   getLeadsByVa(vaId: string): Promise<Lead[]>;
   checkDuplicateLead(lead: InsertLead): Promise<Lead | null>;
@@ -198,6 +200,32 @@ export class DatabaseStorage implements IStorage {
       .where(eq(leads.id, id))
       .returning();
     return lead;
+  }
+
+  async deleteLead(id: string): Promise<void> {
+    // Delete related records first
+    await db.delete(leadEvents).where(eq(leadEvents.leadId, id));
+    await db.delete(commissions).where(eq(commissions.leadId, id));
+    await db.delete(expenses).where(eq(expenses.leadId, id));
+    
+    // Delete the lead
+    await db.delete(leads).where(eq(leads.id, id));
+  }
+
+  async deleteLeads(ids: string[]): Promise<void> {
+    if (ids.length === 0) return;
+    
+    // Delete related records first
+    for (const id of ids) {
+      await db.delete(leadEvents).where(eq(leadEvents.leadId, id));
+      await db.delete(commissions).where(eq(commissions.leadId, id));
+      await db.delete(expenses).where(eq(expenses.leadId, id));
+    }
+    
+    // Delete the leads
+    for (const id of ids) {
+      await db.delete(leads).where(eq(leads.id, id));
+    }
   }
 
   async getLeadsByStatus(status: LeadStatus): Promise<Lead[]> {

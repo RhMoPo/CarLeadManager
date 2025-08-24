@@ -401,6 +401,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.delete('/api/leads/:id', requireAuth, requireRole(['SUPERADMIN']), async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      
+      const lead = await storage.getLead(id);
+      if (!lead) {
+        return res.status(404).json({ message: 'Lead not found' });
+      }
+
+      await storage.deleteLead(id);
+
+      await storage.createAuditLog({
+        userId: req.session.userId!,
+        action: 'DELETE_LEAD',
+        resourceType: 'lead',
+        resourceId: id,
+        details: `Deleted lead: ${lead.year} ${lead.make} ${lead.model}`,
+        ipAddress: req.ip || null,
+        userAgent: req.get('User-Agent') || null,
+      });
+
+      res.json({ message: 'Lead deleted successfully' });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.delete('/api/leads', requireAuth, requireRole(['SUPERADMIN']), async (req, res, next) => {
+    try {
+      const { ids } = req.body;
+      
+      if (!Array.isArray(ids) || ids.length === 0) {
+        return res.status(400).json({ message: 'Invalid or empty lead IDs array' });
+      }
+
+      await storage.deleteLeads(ids);
+
+      await storage.createAuditLog({
+        userId: req.session.userId!,
+        action: 'BULK_DELETE_LEADS',
+        resourceType: 'lead',
+        resourceId: ids.join(','),
+        details: `Bulk deleted ${ids.length} leads`,
+        ipAddress: req.ip || null,
+        userAgent: req.get('User-Agent') || null,
+      });
+
+      res.json({ message: `Successfully deleted ${ids.length} leads` });
+    } catch (error) {
+      next(error);
+    }
+  });
+
   // Commission routes
   app.get('/api/commissions', requireAuth, requireRole(['SUPERADMIN']), async (req, res, next) => {
     try {
