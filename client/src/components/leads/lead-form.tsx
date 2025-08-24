@@ -131,7 +131,11 @@ export function LeadForm({ onSuccess, submitButtonText = "Create Lead", initialD
                     type="number"
                     placeholder="45000"
                     {...field}
-                    onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                    value={field.value ?? ''}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      field.onChange(value === '' ? undefined : parseInt(value));
+                    }}
                     data-testid="input-mileage"
                   />
                 </FormControl>
@@ -154,7 +158,11 @@ export function LeadForm({ onSuccess, submitButtonText = "Create Lead", initialD
                     type="number"
                     placeholder="15000"
                     {...field}
-                    onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                    value={field.value ?? ''}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      field.onChange(value === '' ? undefined : parseFloat(value));
+                    }}
                     data-testid="input-asking-price"
                   />
                 </FormControl>
@@ -173,7 +181,11 @@ export function LeadForm({ onSuccess, submitButtonText = "Create Lead", initialD
                     type="number"
                     placeholder="18000"
                     {...field}
-                    onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                    value={field.value ?? ''}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      field.onChange(value === '' ? undefined : parseFloat(value));
+                    }}
                     data-testid="input-estimated-sale-price"
                   />
                 </FormControl>
