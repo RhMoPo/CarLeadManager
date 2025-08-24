@@ -299,5 +299,5 @@ export type Invite = typeof invites.$inferSelect;
 export type InsertInvite = z.infer<typeof insertInviteSchema>;
 export type MagicToken = typeof magicTokens.$inferSelect;
 
-export type UserRole = "SUPERADMIN" | "MANAGER" | "VA";
+export type UserRole = "SUPERADMIN" | "VA";
 export type LeadStatus = "PENDING" | "APPROVED" | "CONTACTED" | "BOUGHT" | "SOLD" | "PAID" | "REJECTED";
