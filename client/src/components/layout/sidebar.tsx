@@ -11,8 +11,7 @@ import {
 } from "lucide-react";
 
 const navigation = [
-  { name: "Submit Lead", href: "/submit", icon: Car, roles: ["SUPERADMIN", "MANAGER", "VA"] },
-  { name: "All Leads", href: "/leads", icon: Car, roles: ["SUPERADMIN", "MANAGER"] },
+  { name: "Leads", href: "/leads", icon: Car, roles: ["SUPERADMIN", "MANAGER", "VA"] },
   { name: "User Management", href: "/user-management", icon: Users, roles: ["SUPERADMIN"] },
   { name: "Settings", href: "/settings", icon: Settings, roles: ["SUPERADMIN", "MANAGER"] },
 ];
@@ -48,7 +47,7 @@ export function Sidebar() {
       <nav className="flex-1 p-4 space-y-2">
         {visibleNavigation.map((item) => {
           const isActive = location === item.href || 
-            (item.href === '/submit' && location === '/');
+            (item.href === '/leads' && location === '/');
           
           return (
             <Link key={item.name} href={item.href}>

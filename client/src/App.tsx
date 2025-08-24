@@ -10,7 +10,6 @@ import { useAuth } from "@/hooks/use-auth";
 import LoginPage from "@/pages/login";
 import LeadsPage from "@/pages/leads";
 import LeadDetailPage from "@/pages/lead-detail";
-import SubmitLeadPage from "@/pages/submit-lead";
 import UserManagementPage from "@/pages/user-management";
 import SettingsPage from "@/pages/settings";
 import NotFound from "@/pages/not-found";
@@ -54,15 +53,12 @@ function Router() {
   return (
     <AuthenticatedLayout>
       <Switch>
-        <Route path="/" component={SubmitLeadPage} />
-        <Route path="/submit" component={SubmitLeadPage} />
+        <Route path="/" component={LeadsPage} />
+        <Route path="/leads" component={LeadsPage} />
         <Route path="/lead/:id" component={LeadDetailPage} />
         
         {!isVA && (
-          <>
-            <Route path="/leads" component={LeadsPage} />
-            <Route path="/settings" component={SettingsPage} />
-          </>
+          <Route path="/settings" component={SettingsPage} />
         )}
         
         {isSuperAdmin && (

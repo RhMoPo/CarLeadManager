@@ -47,12 +47,12 @@ export default function LeadsPage() {
   const { data: leads, isLoading } = useLeads(filters);
   const updateLeadStatusMutation = useUpdateLeadStatus();
 
-  if (!user || user.role === 'VA') {
+  if (!user) {
     return (
       <div className="flex-1 p-6">
         <div className="text-center py-12">
-          <h2 className="text-xl font-semibold text-slate-900">Access Denied</h2>
-          <p className="text-slate-600 mt-2">You don't have permission to view this page.</p>
+          <h2 className="text-xl font-semibold text-slate-900">Please log in</h2>
+          <p className="text-slate-600 mt-2">You need to be logged in to access this page.</p>
         </div>
       </div>
     );
@@ -87,8 +87,8 @@ export default function LeadsPage() {
       <div className="mb-6">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-semibold text-slate-900">All Leads</h2>
-            <p className="text-slate-600 mt-1">Manage and track all lead submissions</p>
+            <h2 className="text-2xl font-semibold text-slate-900">Leads</h2>
+            <p className="text-slate-600 mt-1">Submit new leads and manage existing submissions</p>
           </div>
           <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
             <DialogTrigger asChild>
