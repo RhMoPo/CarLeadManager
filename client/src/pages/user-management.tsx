@@ -151,13 +151,14 @@ export default function UserManagementPage() {
         </div>
       </div>
 
-      {/* Users Table */}
-      <Card className="mb-6">
+      {/* Combined Users & VAs Table */}
+      <Card>
         <CardHeader>
-          <CardTitle>Users</CardTitle>
+          <CardTitle>Virtual Assistants</CardTitle>
+          <p className="text-sm text-slate-600">Manage all VA accounts and user access</p>
         </CardHeader>
         <CardContent className="p-0">
-          {usersLoading ? (
+          {usersLoading || vasLoading ? (
             <div className="p-6 space-y-3">
               {[1, 2, 3].map((i) => (
                 <Skeleton key={i} className="h-16 w-full" />
@@ -167,83 +168,115 @@ export default function UserManagementPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>User</TableHead>
+                  <TableHead>Name & Email</TableHead>
                   <TableHead>Role</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Leads Count</TableHead>
+                  <TableHead>Total Profit</TableHead>
                   <TableHead>Last Login</TableHead>
-                  <TableHead>Created</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {users?.map((userData: any) => (
-                  <TableRow key={userData.id} className="hover:bg-slate-50" data-testid={`user-row-${userData.id}`}>
-                    <TableCell>
-                      <div className="flex items-center">
-                        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
-                          <span className="text-sm font-medium text-blue-600">
-                            {userData.email?.charAt(0).toUpperCase() || 'U'}
-                          </span>
-                        </div>
-                        <div>
-                          <div className="font-medium text-slate-900" data-testid={`user-email-${userData.id}`}>
-                            {userData.email}
+                {users?.map((userData: any) => {
+                  // Find corresponding VA data if this is a VA user
+                  const vaData = vas?.find((va: any) => va.userId === userData.id);
+                  const isVA = userData.role === 'VA';
+                  
+                  return (
+                    <TableRow key={userData.id} className="hover:bg-slate-50" data-testid={`user-row-${userData.id}`}>
+                      <TableCell>
+                        <div className="flex items-center">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 ${
+                            userData.role === 'SUPERADMIN' ? 'bg-red-100' : 'bg-purple-100'
+                          }`}>
+                            <span className={`text-sm font-medium ${
+                              userData.role === 'SUPERADMIN' ? 'text-red-600' : 'text-purple-600'
+                            }`}>
+                              {isVA ? (vaData?.name?.charAt(0) || 'V') : userData.email?.charAt(0).toUpperCase()}
+                            </span>
                           </div>
-                          <div className="text-sm text-slate-500">ID: #{userData.id.slice(0, 8)}</div>
+                          <div>
+                            <div className="font-medium text-slate-900" data-testid={`user-name-${userData.id}`}>
+                              {isVA ? vaData?.name || 'VA User' : 'Admin'}
+                            </div>
+                            <div className="text-sm text-slate-500" data-testid={`user-email-${userData.id}`}>
+                              {userData.email}
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge className={getRoleBadgeColor(userData.role)} data-testid={`user-role-${userData.id}`}>
-                        {userData.role}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={userData.isActive ? 'default' : 'secondary'}
-                        className={userData.isActive ? 'bg-green-100 text-green-800' : 'bg-slate-100 text-slate-800'}
-                        data-testid={`user-status-${userData.id}`}
-                      >
-                        {userData.isActive ? 'Active' : 'Inactive'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-slate-500 text-sm">
-                      {userData.lastLogin ? formatDate(userData.lastLogin) : 'Never'}
-                    </TableCell>
-                    <TableCell className="text-slate-500 text-sm" data-testid={`user-created-${userData.id}`}>
-                      {formatDate(userData.createdAt)}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center space-x-2">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => {
-                            toast({
-                              title: "Feature coming soon",
-                              description: "User editing functionality will be implemented",
-                            });
-                          }}
-                          data-testid={`button-edit-user-${userData.id}`}
+                      </TableCell>
+                      <TableCell>
+                        <Badge className={getRoleBadgeColor(userData.role)} data-testid={`user-role-${userData.id}`}>
+                          {userData.role === 'SUPERADMIN' ? 'ADMIN' : userData.role}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={userData.isActive ? 'default' : 'secondary'}
+                          className={userData.isActive ? 'bg-green-100 text-green-800' : 'bg-slate-100 text-slate-800'}
+                          data-testid={`user-status-${userData.id}`}
                         >
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => handleToggleUserStatus(userData.id, userData.isActive)}
-                          disabled={toggleUserStatusMutation.isPending}
-                          data-testid={`button-toggle-status-${userData.id}`}
-                        >
-                          <Power className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                          {userData.isActive ? 'Active' : 'Inactive'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-slate-900" data-testid={`user-leads-count-${userData.id}`}>
+                        {isVA ? (vaData?.leadsCount || 0) : 'N/A'}
+                      </TableCell>
+                      <TableCell className="font-medium text-emerald-600" data-testid={`user-total-profit-${userData.id}`}>
+                        {isVA ? `$${vaData?.totalProfit || '0'}` : 'N/A'}
+                      </TableCell>
+                      <TableCell className="text-slate-500 text-sm">
+                        {userData.lastLogin ? formatDate(userData.lastLogin) : 'Never'}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center space-x-2">
+                          {userData.role === 'SUPERADMIN' ? (
+                            <span className="text-xs text-slate-400 px-2 py-1 bg-slate-50 rounded">Admin Account</span>
+                          ) : (
+                            <>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => {
+                                  toast({
+                                    title: "Feature coming soon",
+                                    description: "VA editing functionality will be implemented",
+                                  });
+                                }}
+                                data-testid={`button-edit-user-${userData.id}`}
+                              >
+                                <Edit className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => handleToggleUserStatus(userData.id, userData.isActive)}
+                                disabled={toggleUserStatusMutation.isPending}
+                                data-testid={`button-toggle-status-${userData.id}`}
+                              >
+                                <Power className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => handleDeleteVa(vaData)}
+                                disabled={deleteVaMutation.isPending}
+                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                data-testid={`button-delete-user-${userData.id}`}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
                 {(!users || users.length === 0) && (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8 text-slate-500">
+                    <TableCell colSpan={7} className="text-center py-8 text-slate-500">
                       No users found
                     </TableCell>
                   </TableRow>
@@ -254,119 +287,6 @@ export default function UserManagementPage() {
         </CardContent>
       </Card>
 
-      {/* VAs Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Virtual Assistants</CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
-          {vasLoading ? (
-            <div className="p-6 space-y-3">
-              {[1, 2, 3].map((i) => (
-                <Skeleton key={i} className="h-16 w-full" />
-              ))}
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>VA</TableHead>
-                  <TableHead>User Account</TableHead>
-                  <TableHead>Timezone</TableHead>
-                  <TableHead>Leads Count</TableHead>
-                  <TableHead>Total Profit</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {vas?.map((va: any) => (
-                  <TableRow key={va.id} className="hover:bg-slate-50" data-testid={`va-row-${va.id}`}>
-                    <TableCell>
-                      <div className="flex items-center">
-                        <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center mr-3">
-                          <span className="text-sm font-medium text-purple-600">
-                            {va.name?.charAt(0) || 'V'}
-                          </span>
-                        </div>
-                        <div>
-                          <div className="font-medium text-slate-900" data-testid={`va-name-${va.id}`}>
-                            {va.name}
-                          </div>
-                          <div className="text-sm text-slate-500">{va.notes}</div>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm text-slate-900" data-testid={`va-email-${va.id}`}>
-                        {va.userEmail || 'Not linked'}
-                      </div>
-                      <div className="text-sm text-slate-500">
-                        {va.userId ? 'Linked Account' : 'No Account'}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-slate-900" data-testid={`va-timezone-${va.id}`}>
-                      {va.timezone || 'Not set'}
-                    </TableCell>
-                    <TableCell className="text-slate-900" data-testid={`va-leads-count-${va.id}`}>
-                      {va.leadsCount || 0}
-                    </TableCell>
-                    <TableCell className="font-medium text-emerald-600" data-testid={`va-total-profit-${va.id}`}>
-                      ${va.totalProfit || '0'}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center space-x-2">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => {
-                            toast({
-                              title: "Feature coming soon",
-                              description: "VA editing functionality will be implemented",
-                            });
-                          }}
-                          data-testid={`button-edit-va-${va.id}`}
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => {
-                            toast({
-                              title: "Feature coming soon",
-                              description: "VA performance view will be implemented",
-                            });
-                          }}
-                          data-testid={`button-view-performance-${va.id}`}
-                        >
-                          <BarChart3 className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => handleDeleteVa(va)}
-                          disabled={deleteVaMutation.isPending}
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                          data-testid={`button-delete-va-${va.id}`}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {(!vas || vas.length === 0) && (
-                  <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8 text-slate-500">
-                      No VAs found
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
 
     </div>
   );
