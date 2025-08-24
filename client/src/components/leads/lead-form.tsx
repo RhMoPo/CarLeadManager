@@ -14,9 +14,9 @@ const leadSchema = z.object({
   make: z.string().min(1, "Make is required"),
   model: z.string().min(1, "Model is required"),
   year: z.number().min(1990).max(new Date().getFullYear() + 1),
-  mileage: z.number().min(0),
-  askingPrice: z.number().min(0, "Asking price must be positive"),
-  estimatedSalePrice: z.number().min(0, "Estimated sale price must be positive"),
+  mileage: z.number().min(0).optional(),
+  askingPrice: z.number().min(0, "Asking price must be positive").optional(),
+  estimatedSalePrice: z.number().min(0, "Estimated sale price must be positive").optional(),
   sourceUrl: z.string().url("Must be a valid URL"),
   vaId: z.string().optional(),
 });
@@ -39,9 +39,9 @@ export function LeadForm({ onSuccess, submitButtonText = "Create Lead", initialD
       make: initialData?.make || "",
       model: initialData?.model || "",
       year: initialData?.year || new Date().getFullYear(),
-      mileage: initialData?.mileage || 0,
-      askingPrice: initialData?.askingPrice || 0,
-      estimatedSalePrice: initialData?.estimatedSalePrice || 0,
+      mileage: initialData?.mileage || undefined,
+      askingPrice: initialData?.askingPrice || undefined,
+      estimatedSalePrice: initialData?.estimatedSalePrice || undefined,
       sourceUrl: initialData?.sourceUrl || "",
       vaId: initialData?.vaId || undefined,
     },
@@ -51,8 +51,9 @@ export function LeadForm({ onSuccess, submitButtonText = "Create Lead", initialD
     // Convert numbers to strings for server compatibility and add default values
     const submitData = {
       ...data,
-      askingPrice: data.askingPrice.toString(),
-      estimatedSalePrice: data.estimatedSalePrice.toString(),
+      mileage: data.mileage || 0,
+      askingPrice: (data.askingPrice || 0).toString(),
+      estimatedSalePrice: (data.estimatedSalePrice || 0).toString(),
       expensesEstimate: "0", // Default to 0
       vin: "", // Default empty
       sellerContact: "TBD", // Default placeholder
