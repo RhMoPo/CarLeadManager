@@ -372,14 +372,15 @@ export default function LeadsPage() {
                         {formatCurrency(calculateCommission(lead.estimatedProfit).toString())}
                       </TableCell>
                       <TableCell>
-                        <a 
-                          href={lead.sourceUrl} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:text-blue-800 text-sm truncate max-w-32 block"
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => window.open(lead.sourceUrl, '_blank')}
+                          className="text-blue-600 hover:text-blue-800 text-xs"
+                          data-testid={`button-source-${lead.id}`}
                         >
                           {new URL(lead.sourceUrl).hostname}
-                        </a>
+                        </Button>
                       </TableCell>
                       <TableCell className="text-slate-500 text-sm">
                         {formatDate(lead.createdAt)}
