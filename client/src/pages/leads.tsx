@@ -53,6 +53,10 @@ export default function LeadsPage() {
   }>({ show: false, type: 'single' });
 
   const { data: leads, isLoading } = useLeads(filters);
+  const { data: vas = [] } = useQuery<any[]>({
+    queryKey: ['/api/vas'],
+    enabled: user?.role === 'SUPERADMIN',
+  });
   const { data: settings } = useQuery({
     queryKey: ['/api/settings'],
     enabled: user?.role === 'SUPERADMIN',
@@ -238,10 +242,11 @@ export default function LeadsPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="ALL">All VAs</SelectItem>
-                  {/* TODO: Load actual VAs from API */}
-                  <SelectItem value="1">Sarah Johnson</SelectItem>
-                  <SelectItem value="2">Mike Chen</SelectItem>
-                  <SelectItem value="3">Lisa Rodriguez</SelectItem>
+                  {vas.map((va) => (
+                    <SelectItem key={va.id} value={va.id}>
+                      {va.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
