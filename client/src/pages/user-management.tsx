@@ -34,12 +34,12 @@ export default function UserManagementPage() {
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showCreateVaModal, setShowCreateVaModal] = useState(false);
 
-  const { data: users = [], isLoading: usersLoading } = useQuery({
+  const { data: users = [], isLoading: usersLoading } = useQuery<any[]>({
     queryKey: ['/api/users'],
     enabled: user?.role === 'SUPERADMIN',
   });
 
-  const { data: vas = [], isLoading: vasLoading } = useQuery({
+  const { data: vas = [], isLoading: vasLoading } = useQuery<any[]>({
     queryKey: ['/api/vas'],
     enabled: user?.role !== 'VA',
   });

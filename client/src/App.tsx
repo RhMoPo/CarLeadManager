@@ -10,6 +10,7 @@ import { useAuth } from "@/hooks/use-auth";
 import LoginPage from "@/pages/login";
 import LeadsPage from "@/pages/leads";
 import LeadDetailPage from "@/pages/lead-detail";
+import TrainingPage from "@/pages/training";
 import UserManagementPage from "@/pages/user-management";
 import SettingsPage from "@/pages/settings";
 import NotFound from "@/pages/not-found";
@@ -55,6 +56,7 @@ function Router() {
         <Route path="/" component={LeadsPage} />
         <Route path="/leads" component={LeadsPage} />
         <Route path="/lead/:id" component={LeadDetailPage} />
+        <Route path="/training" component={TrainingPage} />
         
         {isSuperAdmin && (
           <Route path="/settings" component={SettingsPage} />

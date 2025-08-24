@@ -8,10 +8,12 @@ import {
   Settings,
   LogOut,
   User,
+  GraduationCap,
 } from "lucide-react";
 
 const navigation = [
   { name: "Leads", href: "/leads", icon: Car, roles: ["SUPERADMIN", "VA"] },
+  { name: "Training", href: "/training", icon: GraduationCap, roles: ["SUPERADMIN", "VA"] },
   { name: "User Management", href: "/user-management", icon: Users, roles: ["SUPERADMIN"] },
   { name: "Settings", href: "/settings", icon: Settings, roles: ["SUPERADMIN"] },
 ];
