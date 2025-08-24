@@ -63,7 +63,7 @@ export default function LeadsPage() {
 
   // Calculate commission for a lead
   const calculateCommission = (estimatedProfit: string) => {
-    const commissionRate = parseFloat(settings?.commissionPercent || '10') / 100;
+    const commissionRate = parseFloat(settings?.commissionPercent || '0.10');
     const profit = parseFloat(estimatedProfit || '0');
     return profit * commissionRate;
   };
