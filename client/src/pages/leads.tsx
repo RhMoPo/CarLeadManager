@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/table";
 import { LeadForm } from "@/components/leads/lead-form";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from "@/components/ui/dialog";
-import { Plus, Eye, Edit, Car, Trash2 } from "lucide-react";
+import { Plus, Eye, Edit, Car, Trash2, ExternalLink } from "lucide-react";
 import { Link } from "wouter";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { type Lead } from "@/lib/types";
@@ -373,13 +373,13 @@ export default function LeadsPage() {
                       </TableCell>
                       <TableCell>
                         <Button
-                          variant="outline"
+                          variant="ghost"
                           size="sm"
                           onClick={() => window.open(lead.sourceUrl, '_blank')}
-                          className="text-blue-600 hover:text-blue-800 text-xs"
+                          className="text-blue-600 hover:text-blue-800"
                           data-testid={`button-source-${lead.id}`}
                         >
-                          {new URL(lead.sourceUrl).hostname}
+                          <ExternalLink className="w-4 h-4" />
                         </Button>
                       </TableCell>
                       <TableCell className="text-slate-500 text-sm">
