@@ -214,7 +214,7 @@ export class DatabaseStorage implements IStorage {
       .leftJoin(vas, eq(leads.vaId, vas.id));
     
     if (conditions.length > 0) {
-      query = query.where(and(...conditions));
+      query = query.where(and(...conditions)) as any;
     }
     
     const results = await query.orderBy(desc(leads.createdAt));
@@ -467,7 +467,7 @@ export class DatabaseStorage implements IStorage {
 
   // Invites
   async createInvite(invite: InsertInvite & { token: string; expiresAt: Date }): Promise<Invite> {
-    const [newInvite] = await db.insert(invites).values(invite).returning();
+    const [newInvite] = await db.insert(invites).values(invite as any).returning();
     return newInvite;
   }
 
