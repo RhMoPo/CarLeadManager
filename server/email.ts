@@ -21,7 +21,7 @@ export async function sendVAWelcomeEmail(data: VAWelcomeEmailData): Promise<void
 
   try {
     await resend.emails.send({
-      from: 'noreply@your-domain.com', // You'll need to configure this with your domain
+      from: 'onboarding@resend.dev', // Using Resend's verified domain for testing
       to: data.email,
       subject: 'Welcome to Car Lead Management - Your Account Details',
       html: `
