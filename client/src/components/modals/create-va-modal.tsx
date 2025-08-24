@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
-import { Copy, Eye, EyeOff } from "lucide-react";
+import { } from "lucide-react";
 
 interface CreateVaModalProps {
   onSuccess?: () => void;
@@ -17,10 +17,9 @@ export function CreateVaModal({ onSuccess }: CreateVaModalProps) {
     email: "",
     name: "",
   });
-  const [showPassword, setShowPassword] = useState(false);
-  const [generatedCredentials, setGeneratedCredentials] = useState<{
+  const [createdVaInfo, setCreatedVaInfo] = useState<{
     email: string;
-    password: string;
+    message: string;
   } | null>(null);
 
   const queryClient = useQueryClient();
@@ -33,13 +32,13 @@ export function CreateVaModal({ onSuccess }: CreateVaModalProps) {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/users"] });
       queryClient.invalidateQueries({ queryKey: ["/api/vas"] });
-      setGeneratedCredentials({
+      setCreatedVaInfo({
         email: data.user.email,
-        password: data.password
+        message: data.message || "VA account created and welcome email sent"
       });
       toast({
         title: "VA account created",
-        description: "The VA account has been created successfully",
+        description: "Welcome email sent successfully",
       });
     },
     onError: (error: any) => {
@@ -64,28 +63,9 @@ export function CreateVaModal({ onSuccess }: CreateVaModalProps) {
     createVaMutation.mutate(formData);
   };
 
-  const copyCredentials = async () => {
-    if (!generatedCredentials) return;
-    
-    const credentials = `Email: ${generatedCredentials.email}\nPassword: ${generatedCredentials.password}`;
-    try {
-      await navigator.clipboard.writeText(credentials);
-      toast({
-        title: "Credentials copied!",
-        description: "VA credentials have been copied to clipboard",
-      });
-    } catch (err) {
-      toast({
-        title: "Failed to copy",
-        description: "Could not copy credentials to clipboard",
-        variant: "destructive",
-      });
-    }
-  };
-
   const handleReset = () => {
     setFormData({ email: "", name: "" });
-    setGeneratedCredentials(null);
+    setCreatedVaInfo(null);
     onSuccess?.();
   };
 
@@ -98,7 +78,7 @@ export function CreateVaModal({ onSuccess }: CreateVaModalProps) {
         </DialogDescription>
       </DialogHeader>
       
-      {!generatedCredentials ? (
+      {!createdVaInfo ? (
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <Label htmlFor="email">Email</Label>
@@ -144,48 +124,28 @@ export function CreateVaModal({ onSuccess }: CreateVaModalProps) {
             
             <div className="space-y-3">
               <div>
-                <Label className="text-sm font-medium text-slate-700">Email</Label>
+                <Label className="text-sm font-medium text-slate-700">Email Sent To</Label>
                 <div className="flex items-center mt-1">
                   <code className="flex-1 text-sm bg-slate-100 p-2 rounded">
-                    {generatedCredentials.email}
+                    {createdVaInfo.email}
                   </code>
                 </div>
               </div>
 
-              <div>
-                <Label className="text-sm font-medium text-slate-700">Password</Label>
-                <div className="flex items-center mt-1 space-x-2">
-                  <code className="flex-1 text-sm bg-slate-100 p-2 rounded">
-                    {showPassword ? generatedCredentials.password : "••••••••••"}
-                  </code>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => setShowPassword(!showPassword)}
-                    data-testid="button-toggle-password"
-                  >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </Button>
-                </div>
+              <div className="text-sm text-slate-600">
+                <p className="font-medium text-green-700">Welcome email sent successfully! 📧</p>
+                <p className="mt-1">The VA has been sent login credentials and instructions via email.</p>
               </div>
             </div>
-
-            <Button 
-              onClick={copyCredentials}
-              className="w-full mt-4" 
-              variant="outline"
-              data-testid="button-copy-credentials"
-            >
-              <Copy className="w-4 h-4 mr-2" />
-              Copy Credentials
-            </Button>
           </div>
 
-          <div className="text-sm text-slate-600 bg-blue-50 border border-blue-200 rounded-lg p-3">
-            <strong>Share these credentials with the VA:</strong>
-            <br />
-            They can login at the main login page using these credentials.
+          <div className="text-sm text-slate-600 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+            <strong>⚠️ If the VA doesn't receive the email:</strong>
+            <ul className="mt-1 ml-4 list-disc space-y-1">
+              <li>Check spam/junk folder</li>
+              <li>Verify the email address is correct</li>
+              <li>Wait a few minutes for delivery</li>
+            </ul>
           </div>
 
           <Button 
