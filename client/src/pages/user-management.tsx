@@ -14,7 +14,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { InviteUserModal } from "@/components/modals/invite-user-modal";
 import { CreateVaModal } from "@/components/modals/create-va-modal";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
@@ -31,7 +30,6 @@ import { formatDate } from "@/lib/utils";
 export default function UserManagementPage() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const [showInviteModal, setShowInviteModal] = useState(false);
   const [showCreateVaModal, setShowCreateVaModal] = useState(false);
 
   const { data: users = [], isLoading: usersLoading } = useQuery<any[]>({
@@ -148,16 +146,6 @@ export default function UserManagementPage() {
                 </Button>
               </DialogTrigger>
               <CreateVaModal onSuccess={() => setShowCreateVaModal(false)} />
-            </Dialog>
-            
-            <Dialog open={showInviteModal} onOpenChange={setShowInviteModal}>
-              <DialogTrigger asChild>
-                <Button variant="outline" data-testid="button-invite-user">
-                  <UserPlus className="w-4 h-4 mr-2" />
-                  Invite Manager
-                </Button>
-              </DialogTrigger>
-              <InviteUserModal onSuccess={() => setShowInviteModal(false)} />
             </Dialog>
           </div>
         </div>
