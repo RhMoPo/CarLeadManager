@@ -562,8 +562,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId: req.session.userId!,
         action: 'BULK_DELETE_LEADS',
         resourceType: 'lead',
-        resourceId: ids.join(','),
-        details: `Bulk deleted ${ids.length} leads`,
+        resourceId: null,
+        details: `Bulk deleted ${ids.length} leads: ${ids.join(', ')}`,
         ipAddress: req.ip || null,
         userAgent: req.get('User-Agent') || null,
       });
