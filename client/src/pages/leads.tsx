@@ -294,8 +294,9 @@ export default function LeadsPage() {
                     <TableHead>VA</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Asking Price</TableHead>
-                    <TableHead>Est. Profit</TableHead>
-                    <TableHead>Est. Commission</TableHead>
+                    <TableHead>Est. Sale Price</TableHead>
+                    <TableHead>Profit</TableHead>
+                    <TableHead>Commission</TableHead>
                     <TableHead>Source</TableHead>
                     <TableHead>Date</TableHead>
                     <TableHead>Actions</TableHead>
@@ -361,6 +362,9 @@ export default function LeadsPage() {
                         </Select>
                       </TableCell>
                       <TableCell>{formatCurrency(lead.askingPrice)}</TableCell>
+                      <TableCell className="text-green-600 font-medium">
+                        {formatCurrency(lead.estimatedSalePrice)}
+                      </TableCell>
                       <TableCell className="text-emerald-600 font-medium">
                         {formatCurrency(lead.estimatedProfit)}
                       </TableCell>
@@ -408,7 +412,7 @@ export default function LeadsPage() {
                   ))}
                   {(!leads || leads.length === 0) && (
                     <TableRow>
-                      <TableCell colSpan={10} className="text-center py-8 text-slate-500">
+                      <TableCell colSpan={11} className="text-center py-8 text-slate-500">
                         No leads found matching your filters
                       </TableCell>
                     </TableRow>
@@ -430,13 +434,13 @@ export default function LeadsPage() {
               </div>
               <div className="flex items-center space-x-6">
                 <div className="text-center">
-                  <div className="text-xs text-slate-500 mb-1">Total Est. Profit</div>
+                  <div className="text-xs text-slate-500 mb-1">Total Profit</div>
                   <div className="text-lg font-semibold text-emerald-600" data-testid="total-profit">
                     {formatCurrency(totals.totalProfit.toString())}
                   </div>
                 </div>
                 <div className="text-center">
-                  <div className="text-xs text-slate-500 mb-1">Total Est. Commission</div>
+                  <div className="text-xs text-slate-500 mb-1">Total Commission</div>
                   <div className="text-lg font-semibold text-blue-600" data-testid="total-commission">
                     {formatCurrency(totals.totalCommission.toString())}
                   </div>
