@@ -621,6 +621,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Toggle user status (active/inactive)
+  app.patch('/api/users/:userId', requireAuth, requireRole(['SUPERADMIN']), async (req, res, next) => {
+    try {
+      const { userId } = req.params;
+      const { isActive } = req.body;
+      
+      if (typeof isActive !== 'boolean') {
+        return res.status(400).json({ message: 'isActive must be a boolean' });
+      }
+
+      // Get user to check if it exists
+      const existingUser = await storage.getUser(userId);
+      if (!existingUser) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+
+      // Update user status
+      const updatedUser = await storage.updateUser(userId, { isActive });
+
+      await storage.createAuditLog({
+        userId: req.session.userId!,
+        action: isActive ? 'ACTIVATE_USER' : 'DEACTIVATE_USER',
+        resourceType: 'user',
+        resourceId: userId,
+        details: `${isActive ? 'Activated' : 'Deactivated'} user account: ${existingUser.email}`,
+        ipAddress: req.ip || null,
+        userAgent: req.get('User-Agent') || null,
+      });
+
+      res.json({ 
+        message: `User ${isActive ? 'activated' : 'deactivated'} successfully`,
+        user: updatedUser
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+
   // Delete VA account
   app.delete('/api/vas/:id', requireAuth, requireRole(['SUPERADMIN']), async (req, res, next) => {
     try {
