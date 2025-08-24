@@ -20,9 +20,12 @@ export async function sendVAWelcomeEmail(data: VAWelcomeEmailData): Promise<void
   }
 
   try {
-    await resend.emails.send({
-      from: 'onboarding@resend.dev', // Using Resend's verified domain for testing
-      to: data.email,
+    console.log('Attempting to send email to:', data.email);
+    console.log('Using Resend API key:', process.env.RESEND_API_KEY ? 'Present' : 'Missing');
+    
+    const result = await resend.emails.send({
+      from: 'onboarding@resend.dev', // Using Resend's verified domain for testing  
+      to: 'rhyspostans9@gmail.com', // Free Resend accounts can only send to verified email
       subject: 'Welcome to Car Lead Management - Your Account Details',
       html: `
         <!DOCTYPE html>
@@ -39,8 +42,14 @@ export async function sendVAWelcomeEmail(data: VAWelcomeEmailData): Promise<void
               Hi ${data.name},
             </p>
             
+            <div style="background-color: #fee2e2; border-left: 4px solid #ef4444; padding: 15px; margin: 20px 0;">
+              <p style="margin: 0; color: #991b1b; font-size: 14px;">
+                <strong>Note:</strong> This email was sent to ${process.env.NODE_ENV === 'production' ? data.email : 'rhyspostans9@gmail.com (testing mode)'} because we're using a free email service. The actual VA email is: <strong>${data.email}</strong>
+              </p>
+            </div>
+            
             <p style="color: #4b5563; line-height: 1.6; margin-bottom: 20px;">
-              Your Virtual Assistant account has been created. You can now access the Car Lead Management system to submit and manage leads.
+              A Virtual Assistant account has been created for <strong>${data.email}</strong>. They can now access the Car Lead Management system to submit and manage leads.
             </p>
             
             <div style="background-color: #f3f4f6; padding: 20px; border-radius: 6px; margin: 20px 0;">
@@ -95,10 +104,22 @@ The Car Lead Management Team
 This is an automated message. Please do not reply to this email.
       `
     });
+
+    console.log('Email send result:', result);
+    console.log('Welcome email sent successfully to', data.email);
     
-    console.log(`Welcome email sent successfully to ${data.email}`);
+    if (result.error) {
+      console.error('Resend API returned error:', result.error);
+      throw new Error(`Email service error: ${result.error.message}`);
+    }
+    
   } catch (error) {
     console.error('Failed to send welcome email:', error);
-    throw new Error('Failed to send welcome email');
+    console.error('Error details:', {
+      message: error.message,
+      stack: error.stack,
+      response: error.response?.data
+    });
+    throw new Error(`Failed to send welcome email: ${error.message}`);
   }
 }
