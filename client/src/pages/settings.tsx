@@ -14,10 +14,6 @@ import { toast } from "@/hooks/use-toast";
 interface SettingsData {
   companyName?: string;
   defaultTimezone?: string;
-  discordWebhook?: string;
-  notifyNewLead?: boolean;
-  notifyStatusChange?: boolean;
-  notifyCommissionDue?: boolean;
   sessionTimeout?: string;
   magicLinkExpiry?: string;
   requireMFA?: boolean;
@@ -41,10 +37,6 @@ export default function SettingsPage() {
       setSettings({
         companyName: data.companyName || 'Car Lead Management Corp',
         defaultTimezone: data.defaultTimezone || 'UTC',
-        discordWebhook: data.discordWebhook || '',
-        notifyNewLead: data.notifyNewLead === 'true',
-        notifyStatusChange: data.notifyStatusChange === 'true',
-        notifyCommissionDue: data.notifyCommissionDue === 'false',
         sessionTimeout: data.sessionTimeout || '24',
         magicLinkExpiry: data.magicLinkExpiry || '15',
         requireMFA: data.requireMFA === 'true',
@@ -103,15 +95,6 @@ export default function SettingsPage() {
     });
   };
 
-  const handleNotificationSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    handleSubmit('notification', {
-      discordWebhook: settings.discordWebhook,
-      notifyNewLead: settings.notifyNewLead,
-      notifyStatusChange: settings.notifyStatusChange,
-      notifyCommissionDue: settings.notifyCommissionDue,
-    });
-  };
 
   const handleSecuritySubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -187,89 +170,6 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
 
-        {/* Notification Settings */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Notification Settings</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <div className="space-y-4">
-                <Skeleton className="h-4 w-32" />
-                <Skeleton className="h-10 w-full" />
-                <Skeleton className="h-4 w-48" />
-                <Skeleton className="h-4 w-48" />
-                <Skeleton className="h-4 w-48" />
-                <Skeleton className="h-10 w-24" />
-              </div>
-            ) : (
-              <form onSubmit={handleNotificationSubmit} className="space-y-4">
-                <div>
-                  <Label htmlFor="discord-webhook">Discord Webhook URL</Label>
-                  <Input
-                    id="discord-webhook"
-                    type="url"
-                    value={settings.discordWebhook || ''}
-                    onChange={(e) => setSettings(prev => ({ ...prev, discordWebhook: e.target.value }))}
-                    placeholder="https://discord.com/api/webhooks/..."
-                    data-testid="input-discord-webhook"
-                  />
-                  <p className="text-xs text-slate-500 mt-1">
-                    Optional: Send notifications to Discord channel
-                  </p>
-                </div>
-                <div className="space-y-3">
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="notify-new-lead"
-                      checked={settings.notifyNewLead || false}
-                      onCheckedChange={(checked) => 
-                        setSettings(prev => ({ ...prev, notifyNewLead: !!checked }))
-                      }
-                      data-testid="checkbox-notify-new-lead"
-                    />
-                    <Label htmlFor="notify-new-lead" className="text-sm">
-                      Notify on new lead submissions
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="notify-status-change"
-                      checked={settings.notifyStatusChange || false}
-                      onCheckedChange={(checked) => 
-                        setSettings(prev => ({ ...prev, notifyStatusChange: !!checked }))
-                      }
-                      data-testid="checkbox-notify-status-change"
-                    />
-                    <Label htmlFor="notify-status-change" className="text-sm">
-                      Notify on status changes
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="notify-commission-due"
-                      checked={settings.notifyCommissionDue || false}
-                      onCheckedChange={(checked) => 
-                        setSettings(prev => ({ ...prev, notifyCommissionDue: !!checked }))
-                      }
-                      data-testid="checkbox-notify-commission-due"
-                    />
-                    <Label htmlFor="notify-commission-due" className="text-sm">
-                      Notify when commissions are due
-                    </Label>
-                  </div>
-                </div>
-                <Button
-                  type="submit"
-                  disabled={updateSettingMutation.isPending}
-                  data-testid="button-save-notifications"
-                >
-                  Save Changes
-                </Button>
-              </form>
-            )}
-          </CardContent>
-        </Card>
 
         {/* Security Settings */}
         <Card>
