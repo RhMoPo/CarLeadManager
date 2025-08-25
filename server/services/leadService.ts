@@ -3,8 +3,22 @@ import { type InsertLead, type LeadStatus, type UserRole } from '@shared/schema'
 
 class LeadService {
   async createLead(leadData: InsertLead, userId: string) {
-    const lead = await storage.createLead(leadData);
+    // Get the user to check their role
+    const user = await storage.getUser(userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
 
+    // If the user is a VA, get their VA ID and assign it to the lead
+    let finalLeadData = { ...leadData };
+    if (user.role === 'VA') {
+      const va = await storage.getVaByUserId(userId);
+      if (va) {
+        finalLeadData.vaId = va.id;
+      }
+    }
+
+    const lead = await storage.createLead(finalLeadData);
 
     // Create initial event
     await storage.createLeadEvent({
