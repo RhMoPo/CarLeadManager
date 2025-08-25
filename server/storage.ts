@@ -8,7 +8,7 @@ import {
   type MagicToken, type UserRole, type LeadStatus, type LeadWithVa
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, asc, sql, gte, like, ilike, count, sum, isNull, gt } from "drizzle-orm";
+import { eq, and, desc, asc, sql, gte, lte, like, ilike, count, sum, isNull, gt } from "drizzle-orm";
 
 export interface IStorage {
   // Users
@@ -348,6 +348,7 @@ export class DatabaseStorage implements IStorage {
         eq(leads.make, lead.make),
         eq(leads.model, lead.model),
         gte(leads.askingPrice, minPrice.toString()),
+        lte(leads.askingPrice, maxPrice.toString()),
         gte(leads.createdAt, thirtyDaysAgo)
       ));
 
