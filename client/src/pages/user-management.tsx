@@ -47,6 +47,7 @@ export default function UserManagementPage() {
   const { data: users = [], isLoading: usersLoading } = useQuery<any[]>({
     queryKey: ['/api/users'],
     enabled: user?.role === 'SUPERADMIN',
+    staleTime: 0, // Force fresh data
   });
 
   const { data: vas = [], isLoading: vasLoading } = useQuery<any[]>({
