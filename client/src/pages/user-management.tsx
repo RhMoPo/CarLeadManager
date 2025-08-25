@@ -150,6 +150,7 @@ export default function UserManagementPage() {
   };
 
   const handleEditCommission = (va: any) => {
+    if (!va || !va.id) return;
     const currentPercentage = ((parseFloat(va.commissionPercentage || '0.1') * 100).toFixed(1));
     setEditingCommission({ vaId: va.id, currentPercentage });
     setCommissionValue(currentPercentage);
