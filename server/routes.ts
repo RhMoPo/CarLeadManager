@@ -541,10 +541,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create VA account directly with credentials
   app.post('/api/vas/create-account', requireAuth, requireRole(['SUPERADMIN']), async (req, res, next) => {
     try {
-      const { email, name } = req.body;
+      const { email, name, commissionPercentage } = req.body;
       
-      if (!email || !name) {
-        return res.status(400).json({ message: 'Email and name are required' });
+      if (!email || !name || commissionPercentage === undefined) {
+        return res.status(400).json({ message: 'Email, name, and commission percentage are required' });
+      }
+
+      const commissionDecimal = parseFloat(commissionPercentage) / 100;
+      if (isNaN(commissionDecimal) || commissionDecimal < 0 || commissionDecimal > 1) {
+        return res.status(400).json({ message: 'Commission percentage must be between 0 and 100' });
       }
 
       // Check if user already exists
@@ -571,10 +576,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const vaData = {
         userId: user.id,
         name,
-        phoneNumber: null,
-        profilePicture: null,
-        totalCommissions: 0,
-        isActive: true,
+        commissionPercentage: commissionDecimal.toString(),
       };
 
       const va = await storage.createVa(vaData);
@@ -695,6 +697,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       res.status(201).json(va);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Update VA commission percentage
+  app.patch('/api/vas/:id/commission', requireAuth, requireRole(['SUPERADMIN']), async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const { commissionPercentage } = req.body;
+      
+      if (commissionPercentage === undefined) {
+        return res.status(400).json({ message: 'Commission percentage is required' });
+      }
+
+      const commissionDecimal = parseFloat(commissionPercentage) / 100;
+      if (isNaN(commissionDecimal) || commissionDecimal < 0 || commissionDecimal > 1) {
+        return res.status(400).json({ message: 'Commission percentage must be between 0 and 100' });
+      }
+
+      const va = await storage.getVa(id);
+      if (!va) {
+        return res.status(404).json({ message: 'VA not found' });
+      }
+
+      const updatedVa = await storage.updateVa(id, { 
+        commissionPercentage: commissionDecimal.toString() 
+      });
+
+      await storage.createAuditLog({
+        userId: req.session.userId!,
+        action: 'UPDATE_VA_COMMISSION',
+        resourceType: 'va',
+        resourceId: id,
+        details: `Updated commission for ${va.name} to ${commissionPercentage}%`,
+        ipAddress: req.ip || null,
+        userAgent: req.get('User-Agent') || null,
+      });
+
+      res.json(updatedVa);
     } catch (error) {
       next(error);
     }

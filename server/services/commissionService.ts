@@ -15,10 +15,14 @@ class CommissionService {
       return null;
     }
 
-    // Get commission percentage from settings
-    const commissionSetting = await storage.getSetting('commissionPercent');
-    const commissionRate = parseFloat(commissionSetting?.value || '0.10');
+    // Get VA's specific commission percentage
+    const va = await storage.getVa(lead.vaId);
+    if (!va) {
+      console.error(`No VA found for lead ${lead.id}`);
+      return null;
+    }
 
+    const commissionRate = parseFloat(va.commissionPercentage || '0.10');
     const profit = parseFloat(lead.estimatedProfit);
     const commissionAmount = Math.max(0, profit * commissionRate);
 
@@ -44,9 +48,14 @@ class CommissionService {
       return; // Don't recalculate paid commissions
     }
 
-    const commissionSetting = await storage.getSetting('commissionPercent');
-    const commissionRate = parseFloat(commissionSetting?.value || '0.10');
+    // Get VA's specific commission percentage
+    const va = await storage.getVa(lead.vaId);
+    if (!va) {
+      console.error(`No VA found for lead ${leadId}`);
+      return;
+    }
 
+    const commissionRate = parseFloat(va.commissionPercentage || '0.10');
     const profit = parseFloat(lead.estimatedProfit);
     const newAmount = Math.max(0, profit * commissionRate);
 

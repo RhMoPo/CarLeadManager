@@ -44,6 +44,7 @@ export const vas = pgTable("vas", {
   name: text("name").notNull(),
   timezone: text("timezone"),
   notes: text("notes"),
+  commissionPercentage: decimal("commission_percentage", { precision: 5, scale: 4 }).default("0.1000").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

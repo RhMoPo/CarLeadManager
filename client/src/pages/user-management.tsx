@@ -6,6 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Table,
   TableBody,
@@ -14,8 +16,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { CreateVaModal } from "@/components/modals/create-va-modal";
-import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
 import {
   UserPlus,
@@ -24,6 +32,7 @@ import {
   User,
   BarChart3,
   Trash2,
+  Percent,
 } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 
@@ -31,6 +40,8 @@ export default function UserManagementPage() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [showCreateVaModal, setShowCreateVaModal] = useState(false);
+  const [editingCommission, setEditingCommission] = useState<{vaId: string, currentPercentage: string} | null>(null);
+  const [commissionValue, setCommissionValue] = useState("");
 
   const { data: users = [], isLoading: usersLoading } = useQuery<any[]>({
     queryKey: ['/api/users'],
@@ -94,6 +105,29 @@ export default function UserManagementPage() {
     },
   });
 
+  const updateCommissionMutation = useMutation({
+    mutationFn: async ({ vaId, commissionPercentage }: { vaId: string; commissionPercentage: string }) => {
+      const res = await apiRequest('PATCH', `/api/vas/${vaId}/commission`, { commissionPercentage });
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/vas'] });
+      setEditingCommission(null);
+      setCommissionValue("");
+      toast({
+        title: "Commission updated",
+        description: "VA commission percentage has been updated successfully",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to update commission",
+        description: error.message || "An error occurred while updating the commission",
+        variant: "destructive",
+      });
+    },
+  });
+
   if (!user || user.role !== 'SUPERADMIN') {
     return (
       <div className="flex-1 p-6">
@@ -113,6 +147,31 @@ export default function UserManagementPage() {
     if (window.confirm(`Are you sure you want to delete VA "${va.name}"? This will permanently delete their account and cannot be undone.`)) {
       deleteVaMutation.mutate(va.id);
     }
+  };
+
+  const handleEditCommission = (va: any) => {
+    const currentPercentage = ((parseFloat(va.commissionPercentage || '0.1') * 100).toFixed(1));
+    setEditingCommission({ vaId: va.id, currentPercentage });
+    setCommissionValue(currentPercentage);
+  };
+
+  const handleSaveCommission = () => {
+    if (!editingCommission) return;
+    
+    const commissionNum = parseFloat(commissionValue);
+    if (isNaN(commissionNum) || commissionNum < 0 || commissionNum > 100) {
+      toast({
+        title: "Invalid commission percentage",
+        description: "Commission percentage must be between 0 and 100",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    updateCommissionMutation.mutate({
+      vaId: editingCommission.vaId,
+      commissionPercentage: commissionValue
+    });
   };
 
   const getRoleBadgeColor = (role: string) => {
@@ -171,6 +230,7 @@ export default function UserManagementPage() {
                   <TableHead>Name & Email</TableHead>
                   <TableHead>Role</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Commission</TableHead>
                   <TableHead>Leads Count</TableHead>
                   <TableHead>Total Profit</TableHead>
                   <TableHead>Last Login</TableHead>
@@ -220,6 +280,9 @@ export default function UserManagementPage() {
                           {userData.isActive ? 'Active' : 'Inactive'}
                         </Badge>
                       </TableCell>
+                      <TableCell className="text-slate-900" data-testid={`user-commission-${userData.id}`}>
+                        {isVA ? `${((parseFloat(vaData?.commissionPercentage || '0.1') * 100).toFixed(1))}%` : 'N/A'}
+                      </TableCell>
                       <TableCell className="text-slate-900" data-testid={`user-leads-count-${userData.id}`}>
                         {isVA ? (vaData?.leadsCount || 0) : 'N/A'}
                       </TableCell>
@@ -238,15 +301,11 @@ export default function UserManagementPage() {
                               <Button
                                 size="sm"
                                 variant="ghost"
-                                onClick={() => {
-                                  toast({
-                                    title: "Feature coming soon",
-                                    description: "VA editing functionality will be implemented",
-                                  });
-                                }}
-                                data-testid={`button-edit-user-${userData.id}`}
+                                onClick={() => handleEditCommission(vaData)}
+                                data-testid={`button-edit-commission-${userData.id}`}
+                                title="Edit Commission"
                               >
-                                <Edit className="w-4 h-4" />
+                                <Percent className="w-4 h-4" />
                               </Button>
                               <Button
                                 size="sm"
@@ -276,7 +335,7 @@ export default function UserManagementPage() {
                 })}
                 {(!users || users.length === 0) && (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8 text-slate-500">
+                    <TableCell colSpan={8} className="text-center py-8 text-slate-500">
                       No users found
                     </TableCell>
                   </TableRow>
@@ -287,6 +346,51 @@ export default function UserManagementPage() {
         </CardContent>
       </Card>
 
+      {/* Edit Commission Modal */}
+      <Dialog open={!!editingCommission} onOpenChange={() => setEditingCommission(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Commission Percentage</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="commission">Commission Percentage (%)</Label>
+              <Input
+                id="commission"
+                type="number"
+                step="0.1"
+                min="0"
+                max="100"
+                value={commissionValue}
+                onChange={(e) => setCommissionValue(e.target.value)}
+                placeholder="10.0"
+                data-testid="input-edit-commission"
+              />
+              <p className="text-sm text-slate-500 mt-1">
+                Current: {editingCommission?.currentPercentage}%
+              </p>
+            </div>
+            <div className="flex space-x-2">
+              <Button
+                onClick={handleSaveCommission}
+                disabled={updateCommissionMutation.isPending}
+                className="flex-1"
+                data-testid="button-save-commission"
+              >
+                {updateCommissionMutation.isPending ? "Saving..." : "Save"}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setEditingCommission(null)}
+                className="flex-1"
+                data-testid="button-cancel-commission"
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
     </div>
   );

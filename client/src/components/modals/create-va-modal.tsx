@@ -16,6 +16,7 @@ export function CreateVaModal({ onSuccess }: CreateVaModalProps) {
   const [formData, setFormData] = useState({
     email: "",
     name: "",
+    commissionPercentage: "10",
   });
   const [showPassword, setShowPassword] = useState(false);
   const [generatedCredentials, setGeneratedCredentials] = useState<{
@@ -26,7 +27,7 @@ export function CreateVaModal({ onSuccess }: CreateVaModalProps) {
   const queryClient = useQueryClient();
 
   const createVaMutation = useMutation({
-    mutationFn: async (data: { email: string; name: string }) => {
+    mutationFn: async (data: { email: string; name: string; commissionPercentage: string }) => {
       const res = await apiRequest("POST", "/api/vas/create-account", data);
       return res.json();
     },
@@ -53,7 +54,7 @@ export function CreateVaModal({ onSuccess }: CreateVaModalProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.email || !formData.name) {
+    if (!formData.email || !formData.name || !formData.commissionPercentage) {
       toast({
         title: "Missing fields",
         description: "Please fill in all required fields",
@@ -61,6 +62,17 @@ export function CreateVaModal({ onSuccess }: CreateVaModalProps) {
       });
       return;
     }
+    
+    const commissionValue = parseFloat(formData.commissionPercentage);
+    if (isNaN(commissionValue) || commissionValue < 0 || commissionValue > 100) {
+      toast({
+        title: "Invalid commission percentage",
+        description: "Commission percentage must be between 0 and 100",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     createVaMutation.mutate(formData);
   };
 
@@ -84,7 +96,7 @@ export function CreateVaModal({ onSuccess }: CreateVaModalProps) {
   };
 
   const handleReset = () => {
-    setFormData({ email: "", name: "" });
+    setFormData({ email: "", name: "", commissionPercentage: "10" });
     setGeneratedCredentials(null);
     onSuccess?.();
   };
@@ -123,6 +135,22 @@ export function CreateVaModal({ onSuccess }: CreateVaModalProps) {
               placeholder="John Smith"
               required
               data-testid="input-va-name"
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="commissionPercentage">Commission Percentage (%)</Label>
+            <Input
+              id="commissionPercentage"
+              type="number"
+              step="0.01"
+              min="0"
+              max="100"
+              value={formData.commissionPercentage}
+              onChange={(e) => setFormData({ ...formData, commissionPercentage: e.target.value })}
+              placeholder="10.00"
+              required
+              data-testid="input-va-commission"
             />
           </div>
 
