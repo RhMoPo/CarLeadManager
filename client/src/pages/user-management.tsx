@@ -292,7 +292,7 @@ export default function UserManagementPage() {
       </Card>
 
       {/* Virtual Assistants Section */}
-      <Card>
+      <Card className="mt-8">
         <CardHeader>
           <CardTitle>Virtual Assistants</CardTitle>
           <p className="text-sm text-slate-600">Manage all VA accounts and user access</p>
