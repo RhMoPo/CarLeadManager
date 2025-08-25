@@ -56,6 +56,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: 'Invalid credentials' });
       }
 
+      // Update last login timestamp
+      await storage.updateUser(user.id, { lastLogin: new Date() });
+
       req.session.userId = user.id;
       req.session.userRole = user.role;
       
@@ -102,6 +105,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!user) {
         return res.status(401).json({ message: 'Invalid or expired token' });
       }
+
+      // Update last login timestamp
+      await storage.updateUser(user.id, { lastLogin: new Date() });
 
       req.session.userId = user.id;
       req.session.userRole = user.role;
@@ -154,7 +160,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!user) {
         return res.status(404).json({ message: 'User not found' });
       }
-      res.json({ id: user.id, email: user.email, role: user.role });
+      res.json({ id: user.id, email: user.email, role: user.role, lastLogin: user.lastLogin });
     } catch (error) {
       next(error);
     }
