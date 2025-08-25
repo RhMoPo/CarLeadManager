@@ -47,7 +47,6 @@ export default function UserManagementPage() {
   const { data: users = [], isLoading: usersLoading } = useQuery<any[]>({
     queryKey: ['/api/users'],
     enabled: user?.role === 'SUPERADMIN',
-    staleTime: 0, // Force fresh data
   });
 
   const { data: vas = [], isLoading: vasLoading } = useQuery<any[]>({
@@ -242,7 +241,6 @@ export default function UserManagementPage() {
                   <TableHead>Commission</TableHead>
                   <TableHead>Leads Count</TableHead>
                   <TableHead>Total Profit</TableHead>
-                  <TableHead>Last Login</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -297,9 +295,6 @@ export default function UserManagementPage() {
                       </TableCell>
                       <TableCell className="font-medium text-emerald-600" data-testid={`user-total-profit-${userData.id}`}>
                         {isVA ? `$${vaData?.totalProfit || '0'}` : 'N/A'}
-                      </TableCell>
-                      <TableCell className="text-slate-500 text-sm">
-                        {userData.lastLogin ? formatDate(userData.lastLogin) : 'Never'}
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center space-x-2">

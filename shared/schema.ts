@@ -33,7 +33,6 @@ export const users = pgTable("users", {
   passwordHash: text("password_hash"),
   role: userRoleEnum("role").notNull(),
   isActive: boolean("is_active").default(true).notNull(),
-  lastLogin: timestamp("last_login"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
