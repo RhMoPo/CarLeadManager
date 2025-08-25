@@ -218,7 +218,80 @@ export default function UserManagementPage() {
         </div>
       </div>
 
-      {/* Combined Users & VAs Table */}
+      {/* Admin Accounts Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Admin Accounts</CardTitle>
+          <p className="text-sm text-slate-600">Manage administrator accounts and permissions</p>
+        </CardHeader>
+        <CardContent className="p-0">
+          {usersLoading ? (
+            <div className="p-6 space-y-3">
+              <Skeleton className="h-16 w-full" />
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name & Email</TableHead>
+                  <TableHead>Role</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {users?.filter(user => user.role === 'SUPERADMIN').map((userData: any) => (
+                  <TableRow key={userData.id} className="hover:bg-slate-50" data-testid={`admin-row-${userData.id}`}>
+                    <TableCell>
+                      <div className="flex items-center">
+                        <div className="w-8 h-8 rounded-full flex items-center justify-center mr-3 bg-red-100">
+                          <span className="text-sm font-medium text-red-600">
+                            {userData.email?.charAt(0).toUpperCase()}
+                          </span>
+                        </div>
+                        <div>
+                          <div className="font-medium text-slate-900" data-testid={`admin-name-${userData.id}`}>
+                            Admin
+                          </div>
+                          <div className="text-sm text-slate-500" data-testid={`admin-email-${userData.id}`}>
+                            {userData.email}
+                          </div>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge className="bg-red-100 text-red-800" data-testid={`admin-role-${userData.id}`}>
+                        ADMIN
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={userData.isActive ? 'default' : 'secondary'}
+                        className={userData.isActive ? 'bg-green-100 text-green-800' : 'bg-slate-100 text-slate-800'}
+                        data-testid={`admin-status-${userData.id}`}
+                      >
+                        {userData.isActive ? 'Active' : 'Inactive'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-xs text-slate-400 px-2 py-1 bg-slate-50 rounded">Admin Account</span>
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {users?.filter(user => user.role === 'SUPERADMIN').length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center py-8 text-slate-500">
+                      No admin accounts found
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Virtual Assistants Section */}
       <Card>
         <CardHeader>
           <CardTitle>Virtual Assistants</CardTitle>
@@ -245,27 +318,22 @@ export default function UserManagementPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {users?.map((userData: any) => {
+                {users?.filter(user => user.role === 'VA').map((userData: any) => {
                   // Find corresponding VA data if this is a VA user
                   const vaData = vas?.find((va: any) => va.userId === userData.id);
-                  const isVA = userData.role === 'VA';
                   
                   return (
                     <TableRow key={userData.id} className="hover:bg-slate-50" data-testid={`user-row-${userData.id}`}>
                       <TableCell>
                         <div className="flex items-center">
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 ${
-                            userData.role === 'SUPERADMIN' ? 'bg-red-100' : 'bg-purple-100'
-                          }`}>
-                            <span className={`text-sm font-medium ${
-                              userData.role === 'SUPERADMIN' ? 'text-red-600' : 'text-purple-600'
-                            }`}>
-                              {isVA ? (vaData?.name?.charAt(0) || 'V') : userData.email?.charAt(0).toUpperCase()}
+                          <div className="w-8 h-8 rounded-full flex items-center justify-center mr-3 bg-purple-100">
+                            <span className="text-sm font-medium text-purple-600">
+                              {vaData?.name?.charAt(0) || 'V'}
                             </span>
                           </div>
                           <div>
                             <div className="font-medium text-slate-900" data-testid={`user-name-${userData.id}`}>
-                              {isVA ? vaData?.name || 'VA User' : 'Admin'}
+                              {vaData?.name || 'VA User'}
                             </div>
                             <div className="text-sm text-slate-500" data-testid={`user-email-${userData.id}`}>
                               {userData.email}
@@ -274,8 +342,8 @@ export default function UserManagementPage() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge className={getRoleBadgeColor(userData.role)} data-testid={`user-role-${userData.id}`}>
-                          {userData.role === 'SUPERADMIN' ? 'ADMIN' : userData.role}
+                        <Badge className="bg-green-100 text-green-800" data-testid={`user-role-${userData.id}`}>
+                          VA
                         </Badge>
                       </TableCell>
                       <TableCell>
@@ -288,69 +356,63 @@ export default function UserManagementPage() {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-slate-900" data-testid={`user-commission-${userData.id}`}>
-                        {isVA ? `${((parseFloat(vaData?.commissionPercentage || '0.1') * 100).toFixed(1))}%` : 'N/A'}
+                        {`${((parseFloat(vaData?.commissionPercentage || '0.1') * 100).toFixed(1))}%`}
                       </TableCell>
                       <TableCell className="text-slate-900" data-testid={`user-leads-count-${userData.id}`}>
-                        {isVA ? (vaData?.leadsCount || 0) : 'N/A'}
+                        {vaData?.leadsCount || 0}
                       </TableCell>
                       <TableCell className="font-medium text-emerald-600" data-testid={`user-total-profit-${userData.id}`}>
-                        {isVA ? `$${vaData?.totalProfit || '0'}` : 'N/A'}
+                        ${vaData?.totalProfit || '0'}
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center space-x-2">
-                          {userData.role === 'SUPERADMIN' ? (
-                            <span className="text-xs text-slate-400 px-2 py-1 bg-slate-50 rounded">Admin Account</span>
-                          ) : (
-                            <>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => handleEditCommission(vaData)}
-                                data-testid={`button-edit-commission-${userData.id}`}
-                                title="Edit Commission"
-                              >
-                                <Percent className="w-4 h-4" />
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => handleToggleUserStatus(userData.id, userData.isActive)}
-                                disabled={toggleUserStatusMutation.isPending}
-                                data-testid={`button-toggle-status-${userData.id}`}
-                              >
-                                <Power className="w-4 h-4" />
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => {
-                                  if (vaData) {
-                                    handleDeleteVa(vaData);
-                                  } else {
-                                    toast({
-                                      title: "Error",
-                                      description: "VA data not found. Please refresh the page and try again.",
-                                      variant: "destructive",
-                                    });
-                                  }
-                                }}
-                                disabled={deleteVaMutation.isPending || !vaData}
-                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                data-testid={`button-delete-user-${userData.id}`}
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            </>
-                          )}
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleEditCommission(vaData)}
+                            data-testid={`button-edit-commission-${userData.id}`}
+                            title="Edit Commission"
+                          >
+                            <Percent className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleToggleUserStatus(userData.id, userData.isActive)}
+                            disabled={toggleUserStatusMutation.isPending}
+                            data-testid={`button-toggle-status-${userData.id}`}
+                          >
+                            <Power className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => {
+                              if (vaData) {
+                                handleDeleteVa(vaData);
+                              } else {
+                                toast({
+                                  title: "Error",
+                                  description: "VA data not found. Please refresh the page and try again.",
+                                  variant: "destructive",
+                                });
+                              }
+                            }}
+                            disabled={deleteVaMutation.isPending || !vaData}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            data-testid={`button-delete-user-${userData.id}`}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
                         </div>
                       </TableCell>
                     </TableRow>
                   );
                 })}
-                {(!users || users.length === 0) && (
+                {users?.filter(user => user.role === 'VA').length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center py-8 text-slate-500">
-                      No users found
+                    <TableCell colSpan={7} className="text-center py-8 text-slate-500">
+                      No VA accounts found
                     </TableCell>
                   </TableRow>
                 )}
