@@ -660,8 +660,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Delete VA record
       await storage.deleteVa(id);
 
-      // Delete associated user account if it exists
+      // Handle audit logs and delete associated user account if it exists
       if (va.userId) {
+        // First, anonymize audit logs by setting user_id to null for this user
+        // This removes the foreign key constraint while preserving audit history
+        await storage.anonymizeUserAuditLogs(va.userId);
+        
+        // Now we can safely delete the user
         await storage.deleteUser(va.userId);
       }
 

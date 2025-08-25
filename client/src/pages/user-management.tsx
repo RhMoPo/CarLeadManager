@@ -42,6 +42,7 @@ export default function UserManagementPage() {
   const [showCreateVaModal, setShowCreateVaModal] = useState(false);
   const [editingCommission, setEditingCommission] = useState<{vaId: string, currentPercentage: string} | null>(null);
   const [commissionValue, setCommissionValue] = useState("");
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{vaId: string, vaName: string} | null>(null);
 
   const { data: users = [], isLoading: usersLoading } = useQuery<any[]>({
     queryKey: ['/api/users'],
@@ -145,8 +146,13 @@ export default function UserManagementPage() {
 
   const handleDeleteVa = (va: any) => {
     if (!va || !va.id || !va.name) return;
-    if (window.confirm(`Are you sure you want to delete VA "${va.name}"? This will permanently delete their account and cannot be undone.`)) {
-      deleteVaMutation.mutate(va.id);
+    setDeleteConfirmation({ vaId: va.id, vaName: va.name });
+  };
+
+  const confirmDelete = () => {
+    if (deleteConfirmation) {
+      deleteVaMutation.mutate(deleteConfirmation.vaId);
+      setDeleteConfirmation(null);
     }
   };
 
@@ -396,6 +402,40 @@ export default function UserManagementPage() {
                 onClick={() => setEditingCommission(null)}
                 className="flex-1"
                 data-testid="button-cancel-commission"
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Modal */}
+      <Dialog open={!!deleteConfirmation} onOpenChange={() => setDeleteConfirmation(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Delete VA Account</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-slate-600">
+              Are you sure you want to delete VA "{deleteConfirmation?.vaName}"? 
+              This will permanently delete their account and cannot be undone.
+            </p>
+            <div className="flex space-x-2">
+              <Button
+                onClick={confirmDelete}
+                disabled={deleteVaMutation.isPending}
+                variant="destructive"
+                className="flex-1"
+                data-testid="button-confirm-delete"
+              >
+                {deleteVaMutation.isPending ? "Deleting..." : "Delete"}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setDeleteConfirmation(null)}
+                className="flex-1"
+                data-testid="button-cancel-delete"
               >
                 Cancel
               </Button>

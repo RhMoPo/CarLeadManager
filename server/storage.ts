@@ -62,6 +62,7 @@ export interface IStorage {
   // Audit Logs
   createAuditLog(log: Omit<AuditLog, 'id' | 'createdAt'>): Promise<AuditLog>;
   getAuditLogs(filters?: any): Promise<AuditLog[]>;
+  anonymizeUserAuditLogs(userId: string): Promise<void>;
 
   // Invites
   createInvite(invite: InsertInvite & { token: string; expiresAt: Date }): Promise<Invite>;
@@ -463,6 +464,12 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(auditLogs)
       .orderBy(desc(auditLogs.createdAt))
       .limit(filters?.limit || 100);
+  }
+
+  async anonymizeUserAuditLogs(userId: string): Promise<void> {
+    await db.update(auditLogs)
+      .set({ userId: null })
+      .where(eq(auditLogs.userId, userId));
   }
 
   // Invites
