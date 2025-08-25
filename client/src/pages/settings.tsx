@@ -12,7 +12,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/hooks/use-toast";
 
 interface SettingsData {
-  commissionPercent?: string;
   companyName?: string;
   defaultTimezone?: string;
   discordWebhook?: string;
@@ -28,7 +27,9 @@ interface SettingsData {
 export default function SettingsPage() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const [settings, setSettings] = useState<SettingsData>({});
+  const [settings, setSettings] = useState<SettingsData>({
+    companyName: '',
+  });
 
   const { data: settingsData, isLoading } = useQuery({
     queryKey: ['/api/settings'],
@@ -38,7 +39,6 @@ export default function SettingsPage() {
     if (settingsData) {
       const data = settingsData as Record<string, string>;
       setSettings({
-        commissionPercent: data.commissionPercent || '10',
         companyName: data.companyName || 'Car Lead Management Corp',
         defaultTimezone: data.defaultTimezone || 'UTC',
         discordWebhook: data.discordWebhook || '',
@@ -94,10 +94,6 @@ export default function SettingsPage() {
     });
   };
 
-  const handleCommissionSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    handleSubmit('commission', { commissionPercent: settings.commissionPercent });
-  };
 
   const handleSystemSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -135,51 +131,6 @@ export default function SettingsPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Commission Settings */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Commission Settings</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <div className="space-y-4">
-                <Skeleton className="h-4 w-32" />
-                <Skeleton className="h-10 w-full" />
-                <Skeleton className="h-10 w-24" />
-              </div>
-            ) : (
-              <form onSubmit={handleCommissionSubmit} className="space-y-4">
-                <div>
-                  <Label htmlFor="commission-percent">Commission Percentage</Label>
-                  <div className="relative">
-                    <Input
-                      id="commission-percent"
-                      type="number"
-                      value={settings.commissionPercent || ''}
-                      onChange={(e) => setSettings(prev => ({ ...prev, commissionPercent: e.target.value }))}
-                      min="0"
-                      max="100"
-                      step="0.1"
-                      className="pr-8"
-                      data-testid="input-commission-percent"
-                    />
-                    <span className="absolute right-3 top-2 text-sm text-slate-500">%</span>
-                  </div>
-                  <p className="text-xs text-slate-500 mt-1">
-                    Percentage of profit paid as commission to VAs
-                  </p>
-                </div>
-                <Button
-                  type="submit"
-                  disabled={updateSettingMutation.isPending}
-                  data-testid="button-save-commission"
-                >
-                  Save Changes
-                </Button>
-              </form>
-            )}
-          </CardContent>
-        </Card>
 
         {/* System Settings */}
         <Card>

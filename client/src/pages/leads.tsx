@@ -66,19 +66,19 @@ export default function LeadsPage() {
   const deleteLeadsMutation = useDeleteLeads();
 
   // Calculate commission for a lead
-  const calculateCommission = (estimatedProfit: string) => {
-    const commissionRate = parseFloat(settings?.commissionPercent || '0.10');
+  const calculateCommission = (estimatedProfit: string, vaCommissionRate?: string) => {
+    const commissionRate = parseFloat(vaCommissionRate || '0.10');
     const profit = parseFloat(estimatedProfit || '0');
     return profit * commissionRate;
   };
 
-  // Calculate totals
+  // Calculate totals - since commission rates are now per-VA, we can't calculate total commission without knowing each lead's VA
   const totals = leads?.reduce((acc: { totalProfit: number; totalCommission: number }, lead: Lead) => {
     const profit = parseFloat(lead.estimatedProfit || '0');
-    const commission = calculateCommission(lead.estimatedProfit);
+    // Commission calculation removed since it's now per-VA and we'd need VA data for each lead
     return {
       totalProfit: acc.totalProfit + profit,
-      totalCommission: acc.totalCommission + commission,
+      totalCommission: 0, // Not calculated here anymore
     };
   }, { totalProfit: 0, totalCommission: 0 }) || { totalProfit: 0, totalCommission: 0 };
 
@@ -379,7 +379,7 @@ export default function LeadsPage() {
                         </div>
                       </TableCell>
                       <TableCell className="text-sm text-slate-900">
-                        {lead.vaName || 'Unknown'}
+                        {vas.find(va => va.id === lead.vaId)?.name || 'Unknown'}
                       </TableCell>
                       <TableCell>
                         <Select 
@@ -514,9 +514,9 @@ export default function LeadsPage() {
                   </div>
                 </div>
                 <div className="text-center">
-                  <div className="text-xs text-slate-500 mb-1">Commission Rate</div>
+                  <div className="text-xs text-slate-500 mb-1">Commission System</div>
                   <div className="text-sm font-medium text-slate-900">
-                    {settings?.commissionPercent || '10'}%
+                    Per-VA Rates
                   </div>
                 </div>
               </div>

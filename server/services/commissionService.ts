@@ -49,7 +49,7 @@ class CommissionService {
     }
 
     // Get VA's specific commission percentage
-    const va = await storage.getVa(lead.vaId);
+    const va = await storage.getVa(lead.vaId!);
     if (!va) {
       console.error(`No VA found for lead ${leadId}`);
       return;

@@ -67,9 +67,10 @@ Preferred communication style: Simple, everyday language.
 
 **Lead Management Flow**
 - Status progression: PENDING → APPROVED → CONTACTED → BOUGHT → SOLD → PAID
-- Automatic commission calculation based on configurable rates
+- Automatic commission calculation based on individual VA commission rates
 - Expense tracking and profit estimation
 - Duplicate lead detection
+- Per-VA commission system replacing global commission settings
 
 ## External Dependencies
 
