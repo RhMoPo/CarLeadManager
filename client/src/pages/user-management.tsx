@@ -144,6 +144,7 @@ export default function UserManagementPage() {
   };
 
   const handleDeleteVa = (va: any) => {
+    if (!va || !va.id || !va.name) return;
     if (window.confirm(`Are you sure you want to delete VA "${va.name}"? This will permanently delete their account and cannot be undone.`)) {
       deleteVaMutation.mutate(va.id);
     }
