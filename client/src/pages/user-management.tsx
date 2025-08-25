@@ -321,8 +321,18 @@ export default function UserManagementPage() {
                               <Button
                                 size="sm"
                                 variant="ghost"
-                                onClick={() => handleDeleteVa(vaData)}
-                                disabled={deleteVaMutation.isPending}
+                                onClick={() => {
+                                  if (vaData) {
+                                    handleDeleteVa(vaData);
+                                  } else {
+                                    toast({
+                                      title: "Error",
+                                      description: "VA data not found. Please refresh the page and try again.",
+                                      variant: "destructive",
+                                    });
+                                  }
+                                }}
+                                disabled={deleteVaMutation.isPending || !vaData}
                                 className="text-red-600 hover:text-red-700 hover:bg-red-50"
                                 data-testid={`button-delete-user-${userData.id}`}
                               >
