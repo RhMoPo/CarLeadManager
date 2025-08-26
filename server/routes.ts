@@ -529,7 +529,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/vas', requireAuth, requireRole(['SUPERADMIN']), async (req, res, next) => {
+  app.get('/api/vas', requireAuth, async (req, res, next) => {
     try {
       const vas = await storage.getAllVas();
       res.json(vas);
