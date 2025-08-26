@@ -23,6 +23,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 import { CreateVaModal } from "@/components/modals/create-va-modal";
 import { toast } from "@/hooks/use-toast";
 import {
@@ -33,6 +40,8 @@ import {
   BarChart3,
   Trash2,
   Percent,
+  MoreHorizontal,
+  KeyRound,
 } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 
@@ -129,6 +138,26 @@ export default function UserManagementPage() {
     },
   });
 
+  const resetPasswordMutation = useMutation({
+    mutationFn: async (userId: string) => {
+      const res = await apiRequest('POST', `/api/users/${userId}/reset-password`);
+      return res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Password reset",
+        description: "A magic link has been sent to the VA's email address",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to reset password",
+        description: error.message || "An error occurred while resetting the password",
+        variant: "destructive",
+      });
+    },
+  });
+
   if (!user || user.role !== 'SUPERADMIN') {
     return (
       <div className="flex-1 p-6">
@@ -180,6 +209,12 @@ export default function UserManagementPage() {
       vaId: editingCommission.vaId,
       commissionPercentage: commissionValue
     });
+  };
+
+  const handleResetPassword = (userId: string, vaName: string) => {
+    if (confirm(`Are you sure you want to reset the password for ${vaName}? A magic link will be sent to their email.`)) {
+      resetPasswordMutation.mutate(userId);
+    }
   };
 
   const getRoleBadgeColor = (role: string) => {
@@ -365,46 +400,63 @@ export default function UserManagementPage() {
                         ${vaData?.totalProfit || '0'}
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center space-x-2">
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => handleEditCommission(vaData)}
-                            data-testid={`button-edit-commission-${userData.id}`}
-                            title="Edit Commission"
-                          >
-                            <Percent className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => handleToggleUserStatus(userData.id, userData.isActive)}
-                            disabled={toggleUserStatusMutation.isPending}
-                            data-testid={`button-toggle-status-${userData.id}`}
-                          >
-                            <Power className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => {
-                              if (vaData) {
-                                handleDeleteVa(vaData);
-                              } else {
-                                toast({
-                                  title: "Error",
-                                  description: "VA data not found. Please refresh the page and try again.",
-                                  variant: "destructive",
-                                });
-                              }
-                            }}
-                            disabled={deleteVaMutation.isPending || !vaData}
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                            data-testid={`button-delete-user-${userData.id}`}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              data-testid={`button-actions-${userData.id}`}
+                            >
+                              <MoreHorizontal className="w-4 h-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-48">
+                            <DropdownMenuItem
+                              onClick={() => handleEditCommission(vaData)}
+                              data-testid={`action-edit-commission-${userData.id}`}
+                            >
+                              <Percent className="w-4 h-4 mr-2" />
+                              Edit Commission
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleResetPassword(userData.id, vaData?.name || 'VA')}
+                              disabled={resetPasswordMutation.isPending}
+                              data-testid={`action-reset-password-${userData.id}`}
+                            >
+                              <KeyRound className="w-4 h-4 mr-2" />
+                              Reset Password
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              onClick={() => handleToggleUserStatus(userData.id, userData.isActive)}
+                              disabled={toggleUserStatusMutation.isPending}
+                              data-testid={`action-toggle-status-${userData.id}`}
+                            >
+                              <Power className="w-4 h-4 mr-2" />
+                              {userData.isActive ? 'Deactivate' : 'Activate'}
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              onClick={() => {
+                                if (vaData) {
+                                  handleDeleteVa(vaData);
+                                } else {
+                                  toast({
+                                    title: "Error",
+                                    description: "VA data not found. Please refresh the page and try again.",
+                                    variant: "destructive",
+                                  });
+                                }
+                              }}
+                              disabled={deleteVaMutation.isPending || !vaData}
+                              className="text-red-600 focus:text-red-600"
+                              data-testid={`action-delete-user-${userData.id}`}
+                            >
+                              <Trash2 className="w-4 h-4 mr-2" />
+                              Delete VA
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </TableCell>
                     </TableRow>
                   );

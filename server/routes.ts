@@ -646,6 +646,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Reset user password (send magic link)
+  app.post('/api/users/:id/reset-password', requireAuth, requireRole(['SUPERADMIN']), async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      
+      const user = await storage.getUser(id);
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+
+      if (user.role !== 'VA') {
+        return res.status(400).json({ message: 'Password reset is only available for VA accounts' });
+      }
+
+      if (!user.isActive) {
+        return res.status(400).json({ message: 'Cannot reset password for inactive accounts' });
+      }
+
+      // Use existing magic link functionality for password reset
+      await authService.sendMagicLink(user.email);
+
+      await storage.createAuditLog({
+        userId: req.session.userId!,
+        action: 'RESET_PASSWORD',
+        resourceType: 'user',
+        resourceId: id,
+        details: `Password reset initiated for VA: ${user.email}`,
+        ipAddress: req.ip || null,
+        userAgent: req.get('User-Agent') || null,
+      });
+
+      res.json({ message: 'Password reset magic link sent to VA email address' });
+    } catch (error) {
+      next(error);
+    }
+  });
+
   // Delete VA account
   app.delete('/api/vas/:id', requireAuth, requireRole(['SUPERADMIN']), async (req, res, next) => {
     try {
