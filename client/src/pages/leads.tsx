@@ -55,7 +55,6 @@ export default function LeadsPage() {
   const { data: leads, isLoading } = useLeads(filters);
   const { data: vas = [] } = useQuery<any[]>({
     queryKey: ['/api/vas'],
-    enabled: user?.role === 'SUPERADMIN',
   });
   const { data: settings } = useQuery({
     queryKey: ['/api/settings'],
