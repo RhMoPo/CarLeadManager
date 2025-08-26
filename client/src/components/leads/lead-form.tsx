@@ -31,9 +31,12 @@ interface LeadFormProps {
   onSuccess?: () => void;
   submitButtonText?: string;
   initialData?: Partial<LeadFormData>;
+  isEdit?: boolean;
+  leadId?: string;
+  updateMutation?: any;
 }
 
-export function LeadForm({ onSuccess, submitButtonText = "Create Lead", initialData }: LeadFormProps) {
+export function LeadForm({ onSuccess, submitButtonText = "Create Lead", initialData, isEdit = false, leadId, updateMutation }: LeadFormProps) {
   const { user } = useAuth();
   const createLeadMutation = useCreateLead();
   const { toast } = useToast();
@@ -64,12 +67,18 @@ export function LeadForm({ onSuccess, submitButtonText = "Create Lead", initialD
       sellerContact: "TBD", // Default placeholder
     };
     
-    createLeadMutation.mutate(submitData, {
-      onSuccess: () => {
-        form.reset();
-        onSuccess?.();
-      },
-    });
+    if (isEdit && updateMutation && leadId) {
+      // Update existing lead
+      updateMutation.mutate({ id: leadId, data: submitData });
+    } else {
+      // Create new lead
+      createLeadMutation.mutate(submitData, {
+        onSuccess: () => {
+          form.reset();
+          onSuccess?.();
+        },
+      });
+    }
   };
 
   return (
@@ -239,10 +248,10 @@ export function LeadForm({ onSuccess, submitButtonText = "Create Lead", initialD
         <div className="flex justify-end space-x-4">
           <Button
             type="submit"
-            disabled={createLeadMutation.isPending}
+            disabled={isEdit ? updateMutation?.isPending : createLeadMutation.isPending}
             data-testid="button-submit-lead"
           >
-            {createLeadMutation.isPending ? "Submitting..." : submitButtonText}
+            {(isEdit ? updateMutation?.isPending : createLeadMutation.isPending) ? "Submitting..." : submitButtonText}
           </Button>
         </div>
       </form>

@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useLeads, useUpdateLeadStatus, useDeleteLead, useDeleteLeads } from "@/hooks/use-leads";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -44,6 +46,7 @@ export default function LeadsPage() {
   });
   const [selectedLeads, setSelectedLeads] = useState<string[]>([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState<{show: boolean, lead?: any}>({show: false});
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
     show: boolean;
     type: 'single' | 'bulk';
@@ -63,6 +66,44 @@ export default function LeadsPage() {
   const updateLeadStatusMutation = useUpdateLeadStatus();
   const deleteLeadMutation = useDeleteLead();
   const deleteLeadsMutation = useDeleteLeads();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  // Update lead mutation
+  const updateLeadMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: any }) => {
+      const res = await apiRequest("PATCH", `/api/leads/${id}`, data);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/leads"] });
+      setShowEditModal({ show: false });
+      toast({
+        title: "Lead updated",
+        description: "Lead has been updated successfully",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to update lead",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Handle edit lead
+  const handleEditLead = (lead: any) => {
+    // Check if user can edit this lead
+    if (user?.role === 'VA') {
+      // VAs can only edit their own leads
+      const userVA = vas.find(va => va.userId === user.id);
+      if (!userVA || lead.vaId !== userVA.id) {
+        return; // Can't edit this lead
+      }
+    }
+    setShowEditModal({ show: true, lead });
+  };
 
   // Calculate commission for a lead
   const calculateCommission = (estimatedProfit: string, vaCommissionRate?: string) => {
@@ -458,9 +499,17 @@ export default function LeadsPage() {
                               <Eye className="w-4 h-4" />
                             </Button>
                           </Link>
-                          <Button size="sm" variant="ghost" data-testid={`button-edit-${lead.id}`}>
-                            <Edit className="w-4 h-4" />
-                          </Button>
+                          {/* Edit button - VAs can only edit their own leads */}
+                          {(user?.role !== 'VA' || (user?.role === 'VA' && vas.find(va => va.userId === user.id)?.id === lead.vaId)) && (
+                            <Button 
+                              size="sm" 
+                              variant="ghost" 
+                              onClick={() => handleEditLead(lead)}
+                              data-testid={`button-edit-${lead.id}`}
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                          )}
                           {user?.role === 'SUPERADMIN' && (
                             <Button 
                               size="sm" 
@@ -561,6 +610,34 @@ export default function LeadsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Edit Lead Modal */}
+      <Dialog open={showEditModal.show} onOpenChange={() => setShowEditModal({show: false})}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Lead</DialogTitle>
+          </DialogHeader>
+          {showEditModal.lead && (
+            <LeadForm
+              onSuccess={() => setShowEditModal({show: false})}
+              submitButtonText="Update Lead"
+              initialData={{
+                make: showEditModal.lead.make,
+                model: showEditModal.lead.model,
+                year: parseInt(showEditModal.lead.year),
+                mileage: parseInt(showEditModal.lead.mileage),
+                askingPrice: parseFloat(showEditModal.lead.askingPrice),
+                estimatedSalePrice: parseFloat(showEditModal.lead.estimatedSalePrice),
+                sourceUrl: showEditModal.lead.sourceUrl,
+              }}
+              isEdit={true}
+              leadId={showEditModal.lead.id}
+              updateMutation={updateLeadMutation}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
       {/* Bottom padding to prevent content from being hidden behind floating bar */}
       {leads && leads.length > 0 && (
         <div className="h-20"></div>
