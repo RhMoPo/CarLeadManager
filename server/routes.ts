@@ -8,6 +8,7 @@ import { leadService } from "./services/leadService";
 import { commissionService } from "./services/commissionService";
 import { insertUserSchema, insertVaSchema, insertLeadSchema, insertInviteSchema } from "@shared/schema";
 import { z } from "zod";
+import bcrypt from "bcrypt";
 import session from "express-session";
 import { randomBytes } from "crypto";
 import { logger } from "./utils/logger";
@@ -664,20 +665,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: 'Cannot reset password for inactive accounts' });
       }
 
-      // Use existing magic link functionality for password reset
-      await authService.sendMagicLink(user.email);
+      // Generate a temporary password
+      const tempPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8);
+      const hashedPassword = await bcrypt.hash(tempPassword, 10);
+      
+      // Update user with new temporary password
+      await storage.updateUser(id, { passwordHash: hashedPassword });
 
       await storage.createAuditLog({
         userId: req.session.userId!,
         action: 'RESET_PASSWORD',
         resourceType: 'user',
         resourceId: id,
-        details: `Password reset initiated for VA: ${user.email}`,
+        details: `Password reset for VA: ${user.email}`,
         ipAddress: req.ip || null,
         userAgent: req.get('User-Agent') || null,
       });
 
-      res.json({ message: 'Password reset magic link sent to VA email address' });
+      res.json({ 
+        message: 'Password has been reset successfully',
+        tempPassword: tempPassword
+      });
     } catch (error) {
       next(error);
     }

@@ -144,10 +144,11 @@ export default function UserManagementPage() {
       const res = await apiRequest('POST', `/api/users/${userId}/reset-password`);
       return res.json();
     },
-    onSuccess: () => {
+    onSuccess: (data: any) => {
       toast({
-        title: "Password reset",
-        description: "A magic link has been sent to the VA's email address",
+        title: "Password reset successfully",
+        description: `New temporary password: ${data.tempPassword}`,
+        duration: 10000, // Show for 10 seconds so user can copy it
       });
     },
     onError: (error: any) => {
@@ -569,7 +570,7 @@ export default function UserManagementPage() {
           <div className="space-y-4">
             <p className="text-sm text-slate-600">
               Are you sure you want to reset the password for <strong>{resetPasswordConfirmation?.vaName}</strong>? 
-              A magic link will be sent to their email.
+              A new temporary password will be generated and displayed.
             </p>
             <div className="flex space-x-2">
               <Button
