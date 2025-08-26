@@ -379,7 +379,7 @@ export default function LeadsPage() {
                         </div>
                       </TableCell>
                       <TableCell className="text-sm text-slate-900">
-                        {vas.find(va => va.id === lead.vaId)?.name || 'Unknown'}
+                        {lead.vaName || 'Unknown'}
                       </TableCell>
                       <TableCell>
                         <Select 
