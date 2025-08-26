@@ -52,6 +52,7 @@ export default function UserManagementPage() {
   const [editingCommission, setEditingCommission] = useState<{vaId: string, currentPercentage: string} | null>(null);
   const [commissionValue, setCommissionValue] = useState("");
   const [deleteConfirmation, setDeleteConfirmation] = useState<{vaId: string, vaName: string} | null>(null);
+  const [resetPasswordConfirmation, setResetPasswordConfirmation] = useState<{userId: string, vaName: string} | null>(null);
 
   const { data: users = [], isLoading: usersLoading } = useQuery<any[]>({
     queryKey: ['/api/users'],
@@ -212,8 +213,13 @@ export default function UserManagementPage() {
   };
 
   const handleResetPassword = (userId: string, vaName: string) => {
-    if (confirm(`Are you sure you want to reset the password for ${vaName}? A magic link will be sent to their email.`)) {
-      resetPasswordMutation.mutate(userId);
+    setResetPasswordConfirmation({ userId, vaName });
+  };
+
+  const confirmResetPassword = () => {
+    if (resetPasswordConfirmation) {
+      resetPasswordMutation.mutate(resetPasswordConfirmation.userId);
+      setResetPasswordConfirmation(null);
     }
   };
 
@@ -546,6 +552,39 @@ export default function UserManagementPage() {
                 onClick={() => setDeleteConfirmation(null)}
                 className="flex-1"
                 data-testid="button-cancel-delete"
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reset Password Confirmation Modal */}
+      <Dialog open={!!resetPasswordConfirmation} onOpenChange={() => setResetPasswordConfirmation(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Reset Password</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-slate-600">
+              Are you sure you want to reset the password for <strong>{resetPasswordConfirmation?.vaName}</strong>? 
+              A magic link will be sent to their email.
+            </p>
+            <div className="flex space-x-2">
+              <Button
+                onClick={confirmResetPassword}
+                disabled={resetPasswordMutation.isPending}
+                className="flex-1"
+                data-testid="button-confirm-reset-password"
+              >
+                {resetPasswordMutation.isPending ? "Sending..." : "Reset Password"}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setResetPasswordConfirmation(null)}
+                className="flex-1"
+                data-testid="button-cancel-reset-password"
               >
                 Cancel
               </Button>
