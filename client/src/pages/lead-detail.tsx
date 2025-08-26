@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useParams, useLocation } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
@@ -9,6 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { LeadForm } from "@/components/leads/lead-form";
 import { toast } from "@/hooks/use-toast";
 import {
   ArrowLeft,
@@ -39,6 +42,7 @@ export default function LeadDetailPage() {
   const [, setLocation] = useLocation();
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const [showEditModal, setShowEditModal] = useState(false);
 
   const { data: lead, isLoading } = useLead(id!);
   const { data: events, isLoading: eventsLoading } = useLeadEvents(id!);
@@ -49,6 +53,33 @@ export default function LeadDetailPage() {
     enabled: !!id && user?.role !== 'VA',
   });
 
+  const { data: vas = [] } = useQuery<any[]>({
+    queryKey: ['/api/vas'],
+  });
+
+  // Update lead mutation
+  const updateLeadMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const res = await apiRequest("PATCH", `/api/leads/${id}`, data);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/leads", id] });
+      setShowEditModal(false);
+      toast({
+        title: "Lead updated",
+        description: "Lead has been updated successfully",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to update lead",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   if (!user) return null;
 
   const handleStatusChange = (newStatus: LeadStatus) => {
@@ -56,6 +87,23 @@ export default function LeadDetailPage() {
   };
 
   const canChangeStatus = user.role !== 'VA';
+
+  // Handle edit lead - check permissions
+  const handleEditLead = () => {
+    if (user?.role === 'VA') {
+      // VAs can only edit their own leads
+      const userVA = vas.find(va => va.userId === user.id);
+      if (!userVA || lead?.vaId !== userVA.id) {
+        toast({
+          title: "Cannot edit lead",
+          description: "You can only edit your own leads",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+    setShowEditModal(true);
+  };
 
   if (isLoading) {
     return (
@@ -149,7 +197,12 @@ export default function LeadDetailPage() {
                 </SelectContent>
               </Select>
             )}
-            <Button variant="outline" size="sm" data-testid="button-edit-lead">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleEditLead}
+              data-testid="button-edit-lead"
+            >
               <Edit className="w-4 h-4 mr-2" />
               Edit
             </Button>
@@ -376,6 +429,23 @@ export default function LeadDetailPage() {
           </Card>
         </div>
       </div>
+
+      {/* Edit Modal */}
+      <Dialog open={showEditModal} onOpenChange={setShowEditModal}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Lead</DialogTitle>
+          </DialogHeader>
+          {lead && (
+            <LeadForm
+              initialData={lead}
+              onSubmit={(data) => updateLeadMutation.mutate(data)}
+              onCancel={() => setShowEditModal(false)}
+              isLoading={updateLeadMutation.isPending}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
