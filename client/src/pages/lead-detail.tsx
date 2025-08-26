@@ -252,7 +252,30 @@ export default function LeadDetailPage() {
                   className="text-blue-600 hover:text-blue-800 flex items-center"
                   data-testid="lead-source-url"
                 >
-                  {lead.sourceUrl}
+                  {(() => {
+                    try {
+                      const url = new URL(lead.sourceUrl);
+                      const hostname = url.hostname.replace('www.', '');
+                      
+                      // Show domain + marketplace for Facebook
+                      if (hostname.includes('facebook.com')) {
+                        return 'Facebook Marketplace';
+                      }
+                      // Show domain + autotrader for AutoTrader
+                      if (hostname.includes('autotrader.co.uk')) {
+                        return 'AutoTrader UK';
+                      }
+                      // Show domain + cars for Cars.com
+                      if (hostname.includes('cars.com')) {
+                        return 'Cars.com';
+                      }
+                      // Show capitalized domain for others
+                      return hostname.charAt(0).toUpperCase() + hostname.slice(1);
+                    } catch (e) {
+                      // Fallback for invalid URLs
+                      return 'View Listing';
+                    }
+                  })()}
                   <ExternalLink className="w-4 h-4 ml-1" />
                 </a>
               </div>
