@@ -407,7 +407,7 @@ export default function UserManagementPage() {
                               variant="ghost"
                               data-testid={`button-actions-${userData.id}`}
                             >
-                              <MoreHorizontal className="w-4 h-4" />
+                              <Edit className="w-4 h-4" />
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="w-48">
