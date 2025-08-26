@@ -42,6 +42,9 @@ import {
   Percent,
   MoreHorizontal,
   KeyRound,
+  Copy,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 
@@ -53,6 +56,8 @@ export default function UserManagementPage() {
   const [commissionValue, setCommissionValue] = useState("");
   const [deleteConfirmation, setDeleteConfirmation] = useState<{vaId: string, vaName: string} | null>(null);
   const [resetPasswordConfirmation, setResetPasswordConfirmation] = useState<{userId: string, vaName: string} | null>(null);
+  const [passwordResetResult, setPasswordResetResult] = useState<{vaName: string, vaEmail: string, tempPassword: string} | null>(null);
+  const [showTempPassword, setShowTempPassword] = useState(false);
 
   const { data: users = [], isLoading: usersLoading } = useQuery<any[]>({
     queryKey: ['/api/users'],
@@ -145,11 +150,16 @@ export default function UserManagementPage() {
       return res.json();
     },
     onSuccess: (data: any) => {
-      toast({
-        title: "Password reset successfully",
-        description: `New temporary password: ${data.tempPassword}`,
-        duration: 10000, // Show for 10 seconds so user can copy it
+      // Get VA info for the modal
+      const userInfo = users?.find(u => u.id === resetPasswordConfirmation?.userId);
+      const vaInfo = vas?.find(v => v.userId === resetPasswordConfirmation?.userId);
+      
+      setPasswordResetResult({
+        vaName: vaInfo?.name || 'VA',
+        vaEmail: userInfo?.email || '',
+        tempPassword: data.tempPassword
       });
+      setResetPasswordConfirmation(null);
     },
     onError: (error: any) => {
       toast({
@@ -220,7 +230,25 @@ export default function UserManagementPage() {
   const confirmResetPassword = () => {
     if (resetPasswordConfirmation) {
       resetPasswordMutation.mutate(resetPasswordConfirmation.userId);
-      setResetPasswordConfirmation(null);
+    }
+  };
+
+  const copyTempPassword = async () => {
+    if (!passwordResetResult) return;
+    
+    const credentials = `Email: ${passwordResetResult.vaEmail}\nTemporary Password: ${passwordResetResult.tempPassword}`;
+    try {
+      await navigator.clipboard.writeText(credentials);
+      toast({
+        title: "Credentials copied!",
+        description: "Login credentials have been copied to clipboard",
+      });
+    } catch (err) {
+      toast({
+        title: "Failed to copy",
+        description: "Could not copy credentials to clipboard",
+        variant: "destructive",
+      });
     }
   };
 
@@ -590,6 +618,78 @@ export default function UserManagementPage() {
                 Cancel
               </Button>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Password Reset Success Modal */}
+      <Dialog open={!!passwordResetResult} onOpenChange={() => setPasswordResetResult(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Password Reset Successful</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <h3 className="text-sm font-medium text-green-800 mb-3">
+                ✅ Password reset for {passwordResetResult?.vaName}
+              </h3>
+              
+              <div className="space-y-3">
+                <div>
+                  <Label className="text-sm font-medium text-slate-700">Email</Label>
+                  <div className="flex items-center mt-1">
+                    <code className="flex-1 text-sm bg-slate-100 p-2 rounded">
+                      {passwordResetResult?.vaEmail}
+                    </code>
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium text-slate-700">Temporary Password</Label>
+                  <div className="flex items-center mt-1 space-x-2">
+                    <code className="flex-1 text-sm bg-slate-100 p-2 rounded">
+                      {showTempPassword ? passwordResetResult?.tempPassword : "••••••••••••••••"}
+                    </code>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => setShowTempPassword(!showTempPassword)}
+                      data-testid="button-toggle-temp-password"
+                    >
+                      {showTempPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              <Button 
+                onClick={copyTempPassword}
+                className="w-full mt-4" 
+                variant="outline"
+                data-testid="button-copy-temp-credentials"
+              >
+                <Copy className="w-4 h-4 mr-2" />
+                Copy Credentials
+              </Button>
+            </div>
+
+            <div className="text-sm text-slate-600 bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <strong>📋 Share these credentials with the VA:</strong>
+              <br />
+              They can login at the main login page using these credentials and should change their password after first login.
+            </div>
+
+            <Button 
+              onClick={() => {
+                setPasswordResetResult(null);
+                setShowTempPassword(false);
+              }}
+              className="w-full" 
+              data-testid="button-done-reset"
+            >
+              Done
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
