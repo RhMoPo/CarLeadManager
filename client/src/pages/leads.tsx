@@ -112,13 +112,20 @@ export default function LeadsPage() {
     return profit * commissionRate;
   };
 
-  // Calculate totals - since commission rates are now per-VA, we can't calculate total commission without knowing each lead's VA
+  // Calculate totals with per-VA commission rates
   const totals = leads?.reduce((acc: { totalProfit: number; totalCommission: number }, lead: Lead) => {
     const profit = parseFloat(lead.estimatedProfit || '0');
-    // Commission calculation removed since it's now per-VA and we'd need VA data for each lead
+    
+    // Find the VA for this lead to get their commission rate
+    const va = vas.find(v => v.id === lead.vaId);
+    const vaCommissionRate = va?.commissionPercentage || 0.10; // Default 10% if not found
+    
+    // Calculate commission for this lead
+    const commission = profit * vaCommissionRate;
+    
     return {
       totalProfit: acc.totalProfit + profit,
-      totalCommission: 0, // Not calculated here anymore
+      totalCommission: acc.totalCommission + commission,
     };
   }, { totalProfit: 0, totalCommission: 0 }) || { totalProfit: 0, totalCommission: 0 };
 
@@ -419,7 +426,7 @@ export default function LeadsPage() {
                         </div>
                       </TableCell>
                       <TableCell className="text-sm text-slate-900">
-                        {lead.vaName || 'Unknown'}
+                        {vas.find(va => va.id === lead.vaId)?.name || 'Unknown'}
                       </TableCell>
                       <TableCell>
                         <Select 
