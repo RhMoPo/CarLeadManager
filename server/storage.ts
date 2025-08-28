@@ -76,6 +76,7 @@ export interface IStorage {
   deleteMagicTokensByUserId(userId: string): Promise<void>;
   unassignLeadsByVaId(vaId: string): Promise<void>;
   deleteLeadsByVaId(vaId: string): Promise<void>;
+  deleteCommissionsByVaId(vaId: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -531,7 +532,25 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteLeadsByVaId(vaId: string): Promise<void> {
+    // First get all leads for this VA
+    const vaLeads = await db.select({ id: leads.id }).from(leads).where(eq(leads.vaId, vaId));
+    
+    // Delete all related data for each lead (to avoid foreign key constraints)
+    for (const lead of vaLeads) {
+      // Delete commissions
+      await db.delete(commissions).where(eq(commissions.leadId, lead.id));
+      // Delete lead events
+      await db.delete(leadEvents).where(eq(leadEvents.leadId, lead.id));
+      // Delete expenses
+      await db.delete(expenses).where(eq(expenses.leadId, lead.id));
+    }
+    
+    // Now delete the leads themselves
     await db.delete(leads).where(eq(leads.vaId, vaId));
+  }
+
+  async deleteCommissionsByVaId(vaId: string): Promise<void> {
+    await db.delete(commissions).where(eq(commissions.vaId, vaId));
   }
 
 }
