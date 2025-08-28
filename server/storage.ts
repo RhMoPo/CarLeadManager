@@ -77,6 +77,7 @@ export interface IStorage {
   unassignLeadsByVaId(vaId: string): Promise<void>;
   deleteLeadsByVaId(vaId: string): Promise<void>;
   deleteCommissionsByVaId(vaId: string): Promise<void>;
+  reassignLeadsToAdmin(vaId: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -551,6 +552,44 @@ export class DatabaseStorage implements IStorage {
 
   async deleteCommissionsByVaId(vaId: string): Promise<void> {
     await db.delete(commissions).where(eq(commissions.vaId, vaId));
+  }
+
+  async reassignLeadsToAdmin(vaId: string): Promise<void> {
+    // Find the admin user (SUPERADMIN role)
+    const [adminUser] = await db.select().from(users).where(eq(users.role, 'SUPERADMIN'));
+    
+    if (!adminUser) {
+      // If no admin found, just unassign the leads (set vaId to null)
+      await db.update(leads)
+        .set({ vaId: null })
+        .where(eq(leads.vaId, vaId));
+      return;
+    }
+
+    // Check if admin has a VA record
+    let adminVa = await db.select().from(vas).where(eq(vas.userId, adminUser.id)).then(rows => rows[0]);
+    
+    // If admin doesn't have a VA record, create one
+    if (!adminVa) {
+      [adminVa] = await db.insert(vas).values({
+        userId: adminUser.id,
+        name: 'Admin',
+        commissionPercentage: '0.0000', // Admin doesn't get commission
+        updatedAt: new Date(),
+      }).returning();
+    }
+
+    // Reassign all leads from the deleted VA to the admin VA
+    await db.update(leads)
+      .set({ vaId: adminVa.id })
+      .where(eq(leads.vaId, vaId));
+    
+    // Delete commissions for these leads since admin doesn't get commission
+    // Or we could reassign them, but it makes more sense to remove them
+    const vaLeads = await db.select({ id: leads.id }).from(leads).where(eq(leads.vaId, adminVa.id));
+    for (const lead of vaLeads) {
+      await db.delete(commissions).where(eq(commissions.leadId, lead.id));
+    }
   }
 
 }

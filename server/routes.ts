@@ -702,10 +702,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: 'VA not found' });
       }
 
-      // Delete all leads and related data associated with this VA to remove foreign key constraints
-      await storage.deleteLeadsByVaId(id);
+      // Reassign all leads from this VA to the admin account
+      await storage.reassignLeadsToAdmin(id);
 
-      // Also delete any commissions directly associated with this VA
+      // Delete any commissions directly associated with this VA (admin doesn't get commissions)
       await storage.deleteCommissionsByVaId(id);
 
       // Delete VA record
