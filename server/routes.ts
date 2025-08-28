@@ -711,6 +711,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // This removes the foreign key constraint while preserving audit history
         await storage.anonymizeUserAuditLogs(va.userId);
         
+        // Delete all magic tokens associated with the user
+        await storage.deleteMagicTokensByUserId(va.userId);
+        
         // Now we can safely delete the user
         await storage.deleteUser(va.userId);
       }
