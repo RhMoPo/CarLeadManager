@@ -74,6 +74,7 @@ export interface IStorage {
   getMagicToken(token: string): Promise<MagicToken | undefined>;
   markMagicTokenUsed(token: string): Promise<void>;
   deleteMagicTokensByUserId(userId: string): Promise<void>;
+  unassignLeadsByVaId(vaId: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -520,6 +521,12 @@ export class DatabaseStorage implements IStorage {
 
   async deleteMagicTokensByUserId(userId: string): Promise<void> {
     await db.delete(magicTokens).where(eq(magicTokens.userId, userId));
+  }
+
+  async unassignLeadsByVaId(vaId: string): Promise<void> {
+    await db.update(leads)
+      .set({ vaId: null })
+      .where(eq(leads.vaId, vaId));
   }
 
 }
